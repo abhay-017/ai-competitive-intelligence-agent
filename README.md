@@ -59,6 +59,34 @@ flowchart LR
   A12 -. data .-> C3
 ```
 
+## Screenshots
+
+Taken from the live system on 18 Nov 2026.
+
+**Workflow A: daily collection and triage.** RSS in, one item at a time through Gemini with a structured parser, fallback model on error, Telegram alert for impact ≥ 7, logged to `Intel_Log`, 7-second pause for the free-tier rate limit.
+
+![Workflow A: daily collection and triage](screenshots/workflow_A_daily_collection.png)
+
+**Workflow B: weekly analyst agent with human approval.** An AI Agent with memory and three tools writes the brief; Telegram sends a notice, and Gmail Send-and-Wait holds it until Approve or Decline.
+
+![Workflow B: weekly analyst brief](screenshots/workflow_B_weekly_brief.png)
+
+**Workflow C: Telegram Q&A.** Answers only from the logged data, for an authorised chat only.
+
+![Workflow C: Telegram Q&A agent](screenshots/workflow_C_telegram_qa.png)
+
+**The Q&A bot answering from the log.** The answer cites the source link and date.
+
+![Telegram Q&A answer with source](screenshots/telegram_qa_answer.png)
+
+**`Intel_Log` after the first live run.** 331 raw feed items became 21 classified rows. The highest score (9) went to a security advisory, which showed the category list needs a "security" category.
+
+![Intel_Log data table](screenshots/intel_log_data_table.png)
+
+**Workflow D: error handler.** Any failure triggers an AI diagnosis and a Telegram alert.
+
+![Workflow D: error handler](screenshots/workflow_D_error_handler.png)
+
 ## Tech stack (all free tier)
 
 | Layer | Tool |
@@ -68,7 +96,8 @@ flowchart LR
 | AI building blocks | n8n LangChain nodes: Basic LLM Chain, Structured Output Parser, AI Agent, Window Buffer Memory, Tool Workflow, HTTP Request Tool, Data Table Tool |
 | Storage | **n8n Data Tables** (`Competitors`, `Intel_Log`, `Briefs`), built into n8n, no external account |
 | Data sources | Google News RSS (`when:2d` queries), company blog RSS feeds |
-| Interface | **Telegram bot** (alerts, approvals, Q&A), **Gmail** (weekly brief) |
+| Interface | **Telegram bot** (alerts, "brief ready" notices, Q&A, error alerts), **Gmail** (Approve/Decline email and the final brief) |
+| Networking | **Cloudflare quick tunnel** so Telegram webhooks reach the self-hosted n8n |
 | Code | JavaScript in n8n Code nodes (feed building, cleaning, 30-day deltas) |
 
 ## Repository layout
@@ -83,6 +112,8 @@ workflows/   n8n workflow exports (credentials removed)
 sheets/      CSV templates for the three n8n Data Tables (columns + seed competitors)
 docs/        PRD, case study + ROI, evaluation plan, metrics, v2 roadmap
 evaluation/  labelled evaluation set template + scoring script
+scripts/     start_n8n_with_tunnel.ps1 (Cloudflare tunnel + n8n with WEBHOOK_URL)
+screenshots/ images used in this README
 ```
 
 ## Setup (about 30 minutes)
