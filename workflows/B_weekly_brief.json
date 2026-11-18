@@ -8,8 +8,8 @@
         "height": 240,
         "color": 4
       },
-      "id": "7c9a01f7-f6f2-4f28-ab30-7c185495a670",
-      "name": "Note 1955b5",
+      "id": "3063c988-8b3e-4427-8079-eff355c0235e",
+      "name": "Note ebf2ea",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -31,7 +31,7 @@
           ]
         }
       },
-      "id": "9cf72179-4a3f-4f62-979e-0c7573c554f0",
+      "id": "dd055367-3913-448a-8d45-493fd8f2e52d",
       "name": "Every Monday 9 AM",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -45,13 +45,13 @@
         "assignments": {
           "assignments": [
             {
-              "id": "7df5e436-5a2d-44cc-9bd6-1d540404bb26",
+              "id": "047f3f2b-8794-4ea1-8c80-e0c48b611a25",
               "name": "telegram_chat_id",
               "value": "PASTE_YOUR_TELEGRAM_CHAT_ID",
               "type": "string"
             },
             {
-              "id": "5bd120be-3548-4b97-9a53-6146fafa5229",
+              "id": "a579ee8e-a47f-4837-a8d8-4874b01ef042",
               "name": "brief_email",
               "value": "PASTE_RECIPIENT_EMAIL",
               "type": "string"
@@ -60,7 +60,7 @@
         },
         "options": {}
       },
-      "id": "cb125cfd-7dfb-4031-8fb9-408b293d8ac7",
+      "id": "e94aae76-1a62-4882-99f4-17c24f48c282",
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -78,7 +78,7 @@
           "maxIterations": 12
         }
       },
-      "id": "d5e1fae2-84f2-42c5-9a89-d5c721f95318",
+      "id": "1126cf6a-12e0-4001-9ab4-126408732fbb",
       "name": "Analyst Agent",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -97,7 +97,7 @@
           "temperature": 0.4
         }
       },
-      "id": "785f2de8-11fa-4630-8bb1-22d29d3f8f23",
+      "id": "7d96c479-93ce-4534-9e67-08fffaba72f2",
       "name": "Gemini 2.5 Flash",
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
@@ -112,7 +112,7 @@
         "sessionKey": "weekly-strategy-brief",
         "contextWindowLength": 6
       },
-      "id": "71f17011-e15c-4e67-8653-1d03175fb6db",
+      "id": "035f47f2-847d-4ea6-ac73-2615d6a1e97a",
       "name": "Window Buffer Memory",
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
@@ -134,7 +134,7 @@
         },
         "returnAll": true
       },
-      "id": "db3d5a4f-8eb9-48d3-b25a-48af15654c47",
+      "id": "a4ca8065-daa5-40d6-a58b-108e74d406b5",
       "name": "read_intel_log",
       "type": "n8n-nodes-base.dataTableTool",
       "typeVersion": 1.1,
@@ -149,7 +149,7 @@
         "url": "=https://news.google.com/rss/search?q={{ encodeURIComponent($fromAI('query', 'short news search query', 'string')) }}&hl=en-IN&gl=IN&ceid=IN:en",
         "options": {}
       },
-      "id": "b80ba8b5-d455-4696-b1c6-8fcdbeb10e60",
+      "id": "c531ccb0-d02a-4d6c-a0ce-0fb4846f63e3",
       "name": "web_search",
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
@@ -188,7 +188,7 @@
           "convertFieldsToString": false
         }
       },
-      "id": "279d4d55-1dae-4489-8bbd-8a56568f0be4",
+      "id": "b97aa377-4a4a-4309-a3cf-30eb3e9098a2",
       "name": "compare_with_last_month",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.2,
@@ -202,19 +202,19 @@
         "assignments": {
           "assignments": [
             {
-              "id": "1e67f1cb-a4a9-4cf0-b142-8cd9133cac40",
+              "id": "989c32e5-0a4e-407e-9027-fdea949c77a9",
               "name": "week",
               "value": "={{ $now.toFormat(\"kkkk-'W'WW\") }}",
               "type": "string"
             },
             {
-              "id": "7a51d09e-b6d0-4588-9de3-ccf14384e8e8",
+              "id": "6df9e17d-37f6-4211-a189-9edf342cd49a",
               "name": "brief_markdown",
               "value": "={{ $json.output }}",
               "type": "string"
             },
             {
-              "id": "a04105bf-cbfe-469a-b8a4-1837f07597de",
+              "id": "682feab6-1ffa-407e-9d23-8967e2cf6150",
               "name": "generated_at",
               "value": "={{ $now.toISO() }}",
               "type": "string"
@@ -223,7 +223,7 @@
         },
         "options": {}
       },
-      "id": "152295f1-7fe2-49ff-88b1-d66132b65c95",
+      "id": "88c060ba-f4f8-4efe-8c9a-58c94675e569",
       "name": "Prepare Brief",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -252,7 +252,7 @@
           }
         }
       },
-      "id": "9b7708bc-7da6-4768-bbe7-4207eb98a597",
+      "id": "f6afb35d-6ad5-4aac-8875-cebe1667a239",
       "name": "Telegram Approval",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
@@ -272,7 +272,7 @@
           },
           "conditions": [
             {
-              "id": "1a9ad1cc-e1d2-4858-87df-78f258b85264",
+              "id": "5eb8e502-a73c-4f50-9fb6-2376b73bea56",
               "leftValue": "={{ $json.data.approved }}",
               "rightValue": "",
               "operator": {
@@ -287,7 +287,7 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "b5d45f33-4916-4058-86c8-df9050f798a8",
+      "id": "f44b82ba-34e5-4ce0-9154-fec5176d3aa1",
       "name": "Approved?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -305,7 +305,7 @@
           "tables": true
         }
       },
-      "id": "7c696e6c-d9a0-4b99-9382-fd1d6661f0d0",
+      "id": "570b7d09-a8f8-4396-8323-0e0430042406",
       "name": "Markdown → HTML",
       "type": "n8n-nodes-base.markdown",
       "typeVersion": 1,
@@ -323,7 +323,7 @@
           "appendAttribution": false
         }
       },
-      "id": "0557a0b1-e5aa-427f-b208-cf3280c5e9c9",
+      "id": "c6493614-5c25-4b5a-a0b9-b00655b17288",
       "name": "Email Brief (Gmail)",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
@@ -338,7 +338,7 @@
         "jsonOutput": "={{ JSON.stringify({ week: $('Prepare Brief').item.json.week, generated_at: $('Prepare Brief').item.json.generated_at, status: 'final', brief: $('Prepare Brief').item.json.brief_markdown.replace(/DRAFT/g, 'FINAL') }) }}",
         "options": {}
       },
-      "id": "8db421a2-c63e-4cef-ae08-11cd3d8f5281",
+      "id": "46a69704-cdea-4264-8d90-3c644c45beb3",
       "name": "Mark Final",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -353,7 +353,7 @@
         "jsonOutput": "={{ JSON.stringify({ week: $('Prepare Brief').item.json.week, generated_at: $('Prepare Brief').item.json.generated_at, status: 'rejected', brief: $('Prepare Brief').item.json.brief_markdown }) }}",
         "options": {}
       },
-      "id": "a86e1860-bc00-4ad6-9595-9e1e1c28d367",
+      "id": "349f3a8f-1cc4-4048-b866-4fa89957cf68",
       "name": "Mark Rejected",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -379,7 +379,7 @@
         },
         "options": {}
       },
-      "id": "133ca8b8-0299-4fb4-bbb8-c20b10833161",
+      "id": "db4d8d51-14a4-4e2d-aa15-0038bc7ae526",
       "name": "Log to Briefs",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,

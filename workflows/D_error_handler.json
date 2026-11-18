@@ -8,8 +8,8 @@
         "height": 220,
         "color": 3
       },
-      "id": "531d99a6-496e-4458-bff2-5190ec43b00e",
-      "name": "Note 9c163c",
+      "id": "bdd92d7e-d1db-47ec-aa7c-960e17c96d03",
+      "name": "Note acb5dc",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -19,7 +19,7 @@
     },
     {
       "parameters": {},
-      "id": "40be6f0e-bbea-429c-8214-5e7288b3b32f",
+      "id": "d0267f53-fbb2-4db7-8e00-3f575e82fbe5",
       "name": "Error Trigger",
       "type": "n8n-nodes-base.errorTrigger",
       "typeVersion": 1,
@@ -33,7 +33,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "7b9f50a0-f24f-470f-b84a-d0a41ba1c8b2",
+              "id": "a9c2921c-13f6-4138-8f55-d4a0242a35e8",
               "name": "telegram_chat_id",
               "value": "PASTE_YOUR_TELEGRAM_CHAT_ID",
               "type": "string"
@@ -42,7 +42,7 @@
         },
         "options": {}
       },
-      "id": "e621fe61-f1b8-4ebd-b7f4-3ae058a0d18e",
+      "id": "fbf57b11-cf7a-4df9-b69a-ce49de63cc8e",
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -63,7 +63,7 @@
           ]
         }
       },
-      "id": "a3226b14-0ac4-4e97-a45c-e55c256c9a3a",
+      "id": "b4b40d80-d626-4b41-a48b-779ca6cf058b",
       "name": "Diagnose Error (fallback model)",
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
@@ -75,12 +75,12 @@
     },
     {
       "parameters": {
-        "modelName": "models/gemini-2.5-flash-lite",
+        "modelName": "models/gemini-flash-lite-latest",
         "options": {
           "temperature": 0.2
         }
       },
-      "id": "8ee2193f-9b42-4cc5-963a-52c8db1f16c4",
+      "id": "ec40e7fb-fee7-4153-a25e-88cfd07410a5",
       "name": "Gemini Flash-Lite (fallback)",
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
@@ -97,7 +97,7 @@
           "appendAttribution": false
         }
       },
-      "id": "407b233b-4e83-43c2-8669-a4d3f76a131e",
+      "id": "2f8ad3be-1c9a-49b6-b0b7-7c37881eb123",
       "name": "Telegram Error Alert",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,

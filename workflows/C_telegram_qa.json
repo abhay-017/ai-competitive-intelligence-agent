@@ -8,8 +8,8 @@
         "height": 240,
         "color": 4
       },
-      "id": "a57516a7-10fc-4a4d-80be-acb4dbfb8419",
-      "name": "Note 79c80b",
+      "id": "7bcaffce-914c-493d-8cfb-570403500d12",
+      "name": "Note 820bb7",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -24,7 +24,7 @@
         ],
         "additionalFields": {}
       },
-      "id": "eeebb123-c523-4709-a086-ad6994ae3822",
+      "id": "5ff69d05-6d69-441b-b156-24e7e1eed157",
       "name": "Telegram Trigger",
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
@@ -38,7 +38,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "da64dbef-382f-4c08-b05d-4c020ebd61ee",
+              "id": "99935ca7-ec27-474d-9a08-863adae05b38",
               "name": "telegram_chat_id",
               "value": "PASTE_YOUR_TELEGRAM_CHAT_ID",
               "type": "string"
@@ -47,7 +47,7 @@
         },
         "options": {}
       },
-      "id": "bbb49f42-b84a-4f40-9b14-01b451ab986b",
+      "id": "bd3ea544-c78b-4ce1-889e-9acf7aa6e96b",
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -67,7 +67,7 @@
           },
           "conditions": [
             {
-              "id": "1f63f355-da73-4a77-b32d-6b508c6b56c9",
+              "id": "c17e79f7-92a3-4c89-ac83-ab50d18dcad8",
               "leftValue": "={{ String($('Telegram Trigger').item.json.message.chat.id) }}",
               "rightValue": "={{ String($json.telegram_chat_id) }}",
               "operator": {
@@ -81,7 +81,7 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "691ffec8-aef5-4c6a-8924-03e44cd8ca5c",
+      "id": "eb718214-cff4-4e42-9648-3309f6c0f53a",
       "name": "Authorised Chat?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -99,7 +99,7 @@
           "maxIterations": 8
         }
       },
-      "id": "c707d294-5c3f-4949-ad08-eb4c7b2909b5",
+      "id": "4dbd7e08-f2db-40b9-ade5-4637ec4d8130",
       "name": "Q&A Agent",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -115,7 +115,7 @@
           "temperature": 0.2
         }
       },
-      "id": "8bc51048-3902-410d-b4e9-0b44b89baa59",
+      "id": "ad712b24-b0a0-4ad0-a977-2dfbeb14921e",
       "name": "Gemini 2.5 Flash",
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
@@ -130,7 +130,7 @@
         "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
         "contextWindowLength": 8
       },
-      "id": "f7d271a3-7976-4b00-bbff-d7dc741be450",
+      "id": "d36bc15c-89af-44de-bffb-96607c4066d1",
       "name": "Chat Memory",
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
@@ -152,7 +152,7 @@
         },
         "returnAll": true
       },
-      "id": "9a26a15b-8b20-4129-b228-05993b670f31",
+      "id": "7416e857-51ba-46d1-a42a-6cffbfca1040",
       "name": "read_intel_log",
       "type": "n8n-nodes-base.dataTableTool",
       "typeVersion": 1.1,
@@ -174,7 +174,7 @@
         },
         "returnAll": true
       },
-      "id": "6f90e496-7df7-446b-9de3-ac9f65727256",
+      "id": "2acd0096-489e-43e9-9327-2267edf1750c",
       "name": "read_briefs",
       "type": "n8n-nodes-base.dataTableTool",
       "typeVersion": 1.1,
@@ -213,7 +213,7 @@
           "convertFieldsToString": false
         }
       },
-      "id": "def08f39-8a9a-4d57-bc02-c4591f368f8b",
+      "id": "face7ac2-8f48-4ec4-9c66-2df6a8ec0990",
       "name": "compare_with_last_month",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.2,
@@ -230,7 +230,7 @@
           "appendAttribution": false
         }
       },
-      "id": "7ebdabd2-0966-4500-9ca4-de9329ff188a",
+      "id": "af1be8fb-f717-4533-858b-8aaa946b7e6d",
       "name": "Reply on Telegram",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
