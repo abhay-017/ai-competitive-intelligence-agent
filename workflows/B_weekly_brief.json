@@ -3,13 +3,13 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## Workflow B — Weekly Analyst Agent + Human Approval\nEvery Monday the AI Agent (Gemini) reads the log, compares with last month and searches the web, then writes a partner-style brief: headline moves, SWOT delta, threats/opportunities and 3 actions. The brief is sent to Telegram for **Approve / Decline**. Approved briefs are marked **final**, emailed via Gmail and logged in the `Briefs` data table.",
+        "content": "## Workflow B — Weekly Analyst Agent + Human Approval\nEvery Monday the AI Agent (Gemini) reads the log, compares with last month and searches the web, then writes a partner-style brief: headline moves, SWOT delta, threats/opportunities and 3 actions. Telegram notifies you, and the brief arrives by email with **Approve / Decline** buttons. Approved briefs are marked **final**, emailed via Gmail and logged in the `Briefs` data table.",
         "width": 640,
         "height": 240,
         "color": 4
       },
-      "id": "3063c988-8b3e-4427-8079-eff355c0235e",
-      "name": "Note ebf2ea",
+      "id": "cad3c666-199c-4c50-8784-64acbc237586",
+      "name": "Note 0f82e7",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -31,7 +31,7 @@
           ]
         }
       },
-      "id": "dd055367-3913-448a-8d45-493fd8f2e52d",
+      "id": "d8f39d35-1bb6-4727-adac-e3964f3b2421",
       "name": "Every Monday 9 AM",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -45,13 +45,13 @@
         "assignments": {
           "assignments": [
             {
-              "id": "047f3f2b-8794-4ea1-8c80-e0c48b611a25",
+              "id": "8a0ae4a6-253f-40b9-8636-02f542875ebe",
               "name": "telegram_chat_id",
               "value": "PASTE_YOUR_TELEGRAM_CHAT_ID",
               "type": "string"
             },
             {
-              "id": "a579ee8e-a47f-4837-a8d8-4874b01ef042",
+              "id": "66cfda38-ad27-4c11-ba32-dadfc8cd5678",
               "name": "brief_email",
               "value": "PASTE_RECIPIENT_EMAIL",
               "type": "string"
@@ -60,7 +60,7 @@
         },
         "options": {}
       },
-      "id": "e94aae76-1a62-4882-99f4-17c24f48c282",
+      "id": "0ddbdf96-a88a-4718-ac3c-af2c0ba73e28",
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -78,7 +78,7 @@
           "maxIterations": 12
         }
       },
-      "id": "1126cf6a-12e0-4001-9ab4-126408732fbb",
+      "id": "47c2e11a-aad3-4112-a264-9975d5afa09a",
       "name": "Analyst Agent",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -92,13 +92,13 @@
     },
     {
       "parameters": {
-        "modelName": "models/gemini-2.5-flash",
+        "modelName": "models/gemini-flash-lite-latest",
         "options": {
           "temperature": 0.4
         }
       },
-      "id": "7d96c479-93ce-4534-9e67-08fffaba72f2",
-      "name": "Gemini 2.5 Flash",
+      "id": "cf06e85b-eb1f-4753-9815-9778f23472d4",
+      "name": "Gemini Flash-Lite",
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
@@ -112,7 +112,7 @@
         "sessionKey": "weekly-strategy-brief",
         "contextWindowLength": 6
       },
-      "id": "035f47f2-847d-4ea6-ac73-2615d6a1e97a",
+      "id": "69aeea33-659b-4ed2-b631-c84c48510351",
       "name": "Window Buffer Memory",
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
@@ -134,7 +134,7 @@
         },
         "returnAll": true
       },
-      "id": "a4ca8065-daa5-40d6-a58b-108e74d406b5",
+      "id": "b9d0dd3a-d036-4095-af64-d33a3d04c716",
       "name": "read_intel_log",
       "type": "n8n-nodes-base.dataTableTool",
       "typeVersion": 1.1,
@@ -149,7 +149,7 @@
         "url": "=https://news.google.com/rss/search?q={{ encodeURIComponent($fromAI('query', 'short news search query', 'string')) }}&hl=en-IN&gl=IN&ceid=IN:en",
         "options": {}
       },
-      "id": "c531ccb0-d02a-4d6c-a0ce-0fb4846f63e3",
+      "id": "538b2ad8-4121-4ae7-90ea-09c0b2695880",
       "name": "web_search",
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
@@ -188,7 +188,7 @@
           "convertFieldsToString": false
         }
       },
-      "id": "b97aa377-4a4a-4309-a3cf-30eb3e9098a2",
+      "id": "6d0b32ec-9612-43b4-8e8d-a33990fb9d40",
       "name": "compare_with_last_month",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.2,
@@ -202,19 +202,19 @@
         "assignments": {
           "assignments": [
             {
-              "id": "989c32e5-0a4e-407e-9027-fdea949c77a9",
+              "id": "e0379fd3-c25a-4bbd-a8ce-d1e1af903535",
               "name": "week",
               "value": "={{ $now.toFormat(\"kkkk-'W'WW\") }}",
               "type": "string"
             },
             {
-              "id": "6df9e17d-37f6-4211-a189-9edf342cd49a",
+              "id": "29c1c935-e6ad-467a-af87-715625ce9c75",
               "name": "brief_markdown",
               "value": "={{ $json.output }}",
               "type": "string"
             },
             {
-              "id": "682feab6-1ffa-407e-9d23-8967e2cf6150",
+              "id": "0787f181-80a3-4d09-a8ef-a00576ced74e",
               "name": "generated_at",
               "value": "={{ $now.toISO() }}",
               "type": "string"
@@ -223,7 +223,7 @@
         },
         "options": {}
       },
-      "id": "88c060ba-f4f8-4efe-8c9a-58c94675e569",
+      "id": "0709cabd-1114-46b8-aef4-c3a7c88d167f",
       "name": "Prepare Brief",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -234,9 +234,27 @@
     },
     {
       "parameters": {
-        "operation": "sendAndWait",
         "chatId": "={{ $('Config').first().json.telegram_chat_id }}",
-        "message": "=📋 Weekly brief {{ $json.week }} is ready for review (recommendations are DRAFT until you approve).\n\n{{ $json.brief_markdown.slice(0, 3300) }}{{ $json.brief_markdown.length > 3300 ? '\\n…(truncated)' : '' }}",
+        "text": "=📋 Weekly competitive brief {{ $json.week }} is ready.\n\nRecommendations are DRAFT until you approve them. Open the approval email sent to {{ $('Config').first().json.brief_email }} and click Approve or Decline.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "d2642713-687d-4343-a867-4d9a7748ba40",
+      "name": "Notify on Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1040,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "={{ $('Config').first().json.brief_email }}",
+        "subject": "=Approve? Weekly Competitive Intelligence Brief — {{ $('Prepare Brief').item.json.week }} (DRAFT)",
+        "message": "={{ $('Prepare Brief').item.json.brief_markdown }}",
         "approvalOptions": {
           "values": {
             "approvalType": "double"
@@ -252,12 +270,12 @@
           }
         }
       },
-      "id": "f6afb35d-6ad5-4aac-8875-cebe1667a239",
-      "name": "Telegram Approval",
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
+      "id": "43405e5a-6367-407f-9cc2-44610cf6d3bc",
+      "name": "Email Approval (Gmail)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
       "position": [
-        1040,
+        1150,
         0
       ]
     },
@@ -272,7 +290,7 @@
           },
           "conditions": [
             {
-              "id": "5eb8e502-a73c-4f50-9fb6-2376b73bea56",
+              "id": "e06e2ee2-b634-4bca-b2ee-35a54b4367ad",
               "leftValue": "={{ $json.data.approved }}",
               "rightValue": "",
               "operator": {
@@ -287,7 +305,7 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "f44b82ba-34e5-4ce0-9154-fec5176d3aa1",
+      "id": "e89c0373-d6f9-4e15-83fd-dec82608650b",
       "name": "Approved?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -305,7 +323,7 @@
           "tables": true
         }
       },
-      "id": "570b7d09-a8f8-4396-8323-0e0430042406",
+      "id": "6275901d-94e1-4c18-9db9-3c6187612200",
       "name": "Markdown → HTML",
       "type": "n8n-nodes-base.markdown",
       "typeVersion": 1,
@@ -323,7 +341,7 @@
           "appendAttribution": false
         }
       },
-      "id": "c6493614-5c25-4b5a-a0b9-b00655b17288",
+      "id": "9855cb36-e160-4e12-a7d1-75e11660648f",
       "name": "Email Brief (Gmail)",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
@@ -338,7 +356,7 @@
         "jsonOutput": "={{ JSON.stringify({ week: $('Prepare Brief').item.json.week, generated_at: $('Prepare Brief').item.json.generated_at, status: 'final', brief: $('Prepare Brief').item.json.brief_markdown.replace(/DRAFT/g, 'FINAL') }) }}",
         "options": {}
       },
-      "id": "46a69704-cdea-4264-8d90-3c644c45beb3",
+      "id": "a2d64cae-c64b-4adf-9f61-46fa2f2dda1d",
       "name": "Mark Final",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -353,7 +371,7 @@
         "jsonOutput": "={{ JSON.stringify({ week: $('Prepare Brief').item.json.week, generated_at: $('Prepare Brief').item.json.generated_at, status: 'rejected', brief: $('Prepare Brief').item.json.brief_markdown }) }}",
         "options": {}
       },
-      "id": "349f3a8f-1cc4-4048-b866-4fa89957cf68",
+      "id": "af31580e-2b87-48d6-aac0-2258453e308e",
       "name": "Mark Rejected",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -379,7 +397,7 @@
         },
         "options": {}
       },
-      "id": "db4d8d51-14a4-4e2d-aa15-0038bc7ae526",
+      "id": "1ff3585b-9329-49c8-b638-0168bef3f8a8",
       "name": "Log to Briefs",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -412,7 +430,7 @@
         ]
       ]
     },
-    "Gemini 2.5 Flash": {
+    "Gemini Flash-Lite": {
       "ai_languageModel": [
         [
           {
@@ -482,14 +500,25 @@
       "main": [
         [
           {
-            "node": "Telegram Approval",
+            "node": "Notify on Telegram",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Telegram Approval": {
+    "Notify on Telegram": {
+      "main": [
+        [
+          {
+            "node": "Email Approval (Gmail)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Approval (Gmail)": {
       "main": [
         [
           {
