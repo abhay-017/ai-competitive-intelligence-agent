@@ -13,7 +13,7 @@ An **n8n + Google Gemini** agent that watches competitors every day, classifies 
 | **Daily** | Pulls Google News and competitor blog RSS feeds, drops items it has already seen, then uses Gemini to put each item into a category (*pricing, product_launch, hiring, partnership, campaign, other*) and score its **impact from 1 to 10**, returning structured JSON |
 | **Alerts** | Items scoring **≥ 7** go to Telegram straight away. Everything is logged to an n8n Data Table |
 | **Weekly** | An **AI Agent** with tools (Data Table lookup, web search, and a "compare with last month" sub-workflow) writes a brief with headline moves, a SWOT delta per competitor, threats and opportunities, and **3 recommended actions** |
-| **Human in the loop** | The brief is sent to Telegram with **Approve / Decline** buttons. Only approved briefs are marked *final* and emailed |
+| **Human in the loop** | Telegram notifies you, and the brief arrives by email with **Approve / Decline** buttons (n8n *Send and Wait*). Only approved briefs are marked *final* and emailed |
 | **Q&A** | Ask the Telegram bot *"What did Asana do on pricing this quarter?"* It answers **only from logged data, with sources** |
 | **Reliability** | Retries, a **fallback model** (Gemini Flash-Lite) if the main model fails, and an **Error Trigger** workflow that sends an AI-diagnosed alert to Telegram |
 
@@ -38,7 +38,7 @@ flowchart LR
     B2 -.tool.-> T2[Web search<br/>Google News]
     B2 -.tool.-> E
     B2 -.memory.-> M[Window Buffer Memory]
-    B2 --> B3[Telegram<br/>Approve / Decline]
+    B2 --> B3[Telegram notice +<br/>Gmail Approve / Decline]
     B3 -- approved --> B4[Gmail brief] --> B5[(Data Table: Briefs · final)]
     B3 -- declined --> B6[(Data Table: Briefs · rejected)]
   end
@@ -64,7 +64,7 @@ flowchart LR
 | Layer | Tool |
 |---|---|
 | Orchestration | **n8n** Community Edition, self-hosted (`localhost:5678`) |
-| LLM | **Google Gemini API**: `gemini-2.5-flash` (main), `gemini-flash-lite-latest` (fallback) |
+| LLM | **Google Gemini API**: `gemini-flash-lite-latest` (main; much higher free daily quota), `gemini-2.5-flash` (fallback; free tier allows only 20 requests a day) |
 | AI building blocks | n8n LangChain nodes: Basic LLM Chain, Structured Output Parser, AI Agent, Window Buffer Memory, Tool Workflow, HTTP Request Tool, Data Table Tool |
 | Storage | **n8n Data Tables** (`Competitors`, `Intel_Log`, `Briefs`), built into n8n, no external account |
 | Data sources | Google News RSS (`when:2d` queries), company blog RSS feeds |
@@ -97,7 +97,7 @@ evaluation/  labelled evaluation set template + scoring script
 8. Run **A** manually once, then check the `Intel_Log` data table and Telegram. **Activate** A, B and D.
 9. **C (Telegram Trigger)** needs a public HTTPS URL. Start n8n behind a tunnel (for example `cloudflared tunnel --url http://localhost:5678` or ngrok) with `WEBHOOK_URL=<tunnel url>`, then activate C.
 
-> Telegram approval buttons in B open an n8n "waiting" URL. They work from the same PC on `localhost`. To approve from your phone, use the tunnel URL from step 9.
+> Approval buttons are sent by **email**, not Telegram: Telegram only accepts public https button URLs, while a self-hosted n8n resume URL is `http://localhost:5678`. The email links work when clicked on the same PC; with a tunnel (step 9) they work from anywhere.
 
 ## Key design decisions
 
@@ -106,7 +106,7 @@ evaluation/  labelled evaluation set template + scoring script
 - **Cost guards for the free tier**: a 2-day lookback, at most 4 items per feed, at most 20 LLM calls per run, one item at a time with a 7-second pause (free-tier rate limit), deduplication against the log itself (Data Table *row not exists* on `link`, so an item that failed is retried next run) and within a run (syndicated titles).
 - **Fallback model**: if the main classifier fails after 3 retries, its *error output* routes the item to a Flash-Lite chain, so the item is still logged and tagged with `model_used`.
 - **Grounded agents**: the Q&A agent may answer only from tool data and must cite links, otherwise it says *"I don't have logged data on that yet."*
-- **Human approval** before any recommendation becomes "final" (n8n *Send and Wait* on Telegram).
+- **Human approval** before any recommendation becomes "final" (n8n *Send and Wait* by Gmail, with a Telegram notice).
 - **No external database**: n8n Data Tables keep storage inside n8n, with no OAuth and no Drive quota.
 - **Least privilege**: the Q&A bot only answers your own Telegram `chat.id`.
 
@@ -120,5 +120,6 @@ evaluation/  labelled evaluation set template + scoring script
 ## Limitations
 
 Google News snippets are short, so classification sometimes relies on the headline alone. Free-tier Gemini quotas limit how many items can be processed per day. n8n Data Tables are fine for thousands of rows; at larger scale or for semantic search, move to Supabase (Postgres + pgvector). Telegram triggers need a public URL when n8n is self-hosted.
+
 
 
