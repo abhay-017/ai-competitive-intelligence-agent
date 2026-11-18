@@ -8,8 +8,8 @@
         "height": 240,
         "color": 4
       },
-      "id": "2209c388-509f-4b79-ac39-b801da2c1d98",
-      "name": "Note d6394f",
+      "id": "a57516a7-10fc-4a4d-80be-acb4dbfb8419",
+      "name": "Note 79c80b",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -24,7 +24,7 @@
         ],
         "additionalFields": {}
       },
-      "id": "529d1ab1-2325-4a67-93c7-b3922408d4da",
+      "id": "eeebb123-c523-4709-a086-ad6994ae3822",
       "name": "Telegram Trigger",
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
@@ -38,13 +38,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "9d97e202-e9c4-4b20-a02e-592eb0400839",
-              "name": "sheet_id",
-              "value": "PASTE_YOUR_GOOGLE_SHEET_ID",
-              "type": "string"
-            },
-            {
-              "id": "f23e93b8-8d18-409c-bce4-6c6d0d9ddab4",
+              "id": "da64dbef-382f-4c08-b05d-4c020ebd61ee",
               "name": "telegram_chat_id",
               "value": "PASTE_YOUR_TELEGRAM_CHAT_ID",
               "type": "string"
@@ -53,7 +47,7 @@
         },
         "options": {}
       },
-      "id": "be0ed52f-5d6c-4825-8f49-415a951e1a89",
+      "id": "bbb49f42-b84a-4f40-9b14-01b451ab986b",
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -73,7 +67,7 @@
           },
           "conditions": [
             {
-              "id": "536f0b88-b470-4fd5-96cd-f1fa0c06276f",
+              "id": "1f63f355-da73-4a77-b32d-6b508c6b56c9",
               "leftValue": "={{ String($('Telegram Trigger').item.json.message.chat.id) }}",
               "rightValue": "={{ String($json.telegram_chat_id) }}",
               "operator": {
@@ -87,7 +81,7 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "ad0cbfc6-902d-4064-ac96-0cf471142641",
+      "id": "691ffec8-aef5-4c6a-8924-03e44cd8ca5c",
       "name": "Authorised Chat?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -105,7 +99,7 @@
           "maxIterations": 8
         }
       },
-      "id": "8d98903c-00bf-4dbb-a2f0-54b9c596b158",
+      "id": "c707d294-5c3f-4949-ad08-eb4c7b2909b5",
       "name": "Q&A Agent",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -121,7 +115,7 @@
           "temperature": 0.2
         }
       },
-      "id": "2ed3de5e-d1b5-4112-8a1f-7c4bec59a840",
+      "id": "8bc51048-3902-410d-b4e9-0b44b89baa59",
       "name": "Gemini 2.5 Flash",
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
@@ -136,7 +130,7 @@
         "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
         "contextWindowLength": 8
       },
-      "id": "e8f7423c-f91d-46e6-aaf4-b7eb495f1c10",
+      "id": "f7d271a3-7976-4b00-bbff-d7dc741be450",
       "name": "Chat Memory",
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
@@ -148,24 +142,20 @@
     {
       "parameters": {
         "descriptionType": "manual",
-        "toolDescription": "Reads every logged competitor-intelligence item from the Intel_Log sheet. Columns: date (logged), competitor, source_type, title, link, published, category (pricing/product_launch/hiring/partnership/campaign/other), impact_score (1-10), is_relevant, summary, reasoning, model_used, alerted.",
-        "operation": "read",
-        "documentId": {
-          "__rl": true,
-          "value": "={{ $('Config').first().json.sheet_id }}",
-          "mode": "id"
-        },
-        "sheetName": {
+        "toolDescription": "Reads every logged competitor-intelligence item from the Intel_Log data table. Columns: date (logged), competitor, source_type, title, link, published, category (pricing/product_launch/hiring/partnership/campaign/other), impact_score (1-10), is_relevant, summary, reasoning, model_used, alerted.",
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
           "__rl": true,
           "value": "Intel_Log",
           "mode": "name"
         },
-        "options": {}
+        "returnAll": true
       },
-      "id": "5c9ee15d-9266-45a5-b56e-630bc644a51b",
+      "id": "9a26a15b-8b20-4129-b228-05993b670f31",
       "name": "read_intel_log",
-      "type": "n8n-nodes-base.googleSheetsTool",
-      "typeVersion": 4.7,
+      "type": "n8n-nodes-base.dataTableTool",
+      "typeVersion": 1.1,
       "position": [
         800,
         160
@@ -175,23 +165,19 @@
       "parameters": {
         "descriptionType": "manual",
         "toolDescription": "Reads past weekly briefs. Columns: week, generated_at, status (final/rejected), brief (markdown).",
-        "operation": "read",
-        "documentId": {
-          "__rl": true,
-          "value": "={{ $('Config').first().json.sheet_id }}",
-          "mode": "id"
-        },
-        "sheetName": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
           "__rl": true,
           "value": "Briefs",
           "mode": "name"
         },
-        "options": {}
+        "returnAll": true
       },
-      "id": "2583f4df-58b5-44c6-b087-3add77fed06c",
+      "id": "6f90e496-7df7-446b-9de3-ac9f65727256",
       "name": "read_briefs",
-      "type": "n8n-nodes-base.googleSheetsTool",
-      "typeVersion": 4.7,
+      "type": "n8n-nodes-base.dataTableTool",
+      "typeVersion": 1.1,
       "position": [
         940,
         160
@@ -227,7 +213,7 @@
           "convertFieldsToString": false
         }
       },
-      "id": "cd83c17a-5a14-41c9-8f70-635004bd16e7",
+      "id": "def08f39-8a9a-4d57-bc02-c4591f368f8b",
       "name": "compare_with_last_month",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.2,
@@ -244,7 +230,7 @@
           "appendAttribution": false
         }
       },
-      "id": "8765519e-9c16-41ec-a10a-99fec53e1375",
+      "id": "7ebdabd2-0966-4500-9ca4-de9329ff188a",
       "name": "Reply on Telegram",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,

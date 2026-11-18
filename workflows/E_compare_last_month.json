@@ -3,13 +3,13 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## Workflow E — Compare With Last Month (sub-workflow)\nCalled as a tool by the analyst agents. Reads `Intel_Log` and returns, per competitor, item counts, high-impact counts, average impact and category mix for the last 30 days vs the previous 30 days.",
+        "content": "## Workflow E — Compare With Last Month (sub-workflow)\nCalled as a tool by the analyst agents. Reads the `Intel_Log` data table and returns, per competitor, item counts, high-impact counts, average impact and category mix for the last 30 days vs the previous 30 days.",
         "width": 560,
         "height": 200,
         "color": 6
       },
-      "id": "4989a8dc-c709-4317-8683-7818184c06fb",
-      "name": "Note 9bffd9",
+      "id": "e2dbb372-bc69-4386-889d-d96ce4760a3f",
+      "name": "Note 487650",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -27,7 +27,7 @@
           ]
         }
       },
-      "id": "40d01537-57b3-43c5-a8d1-7488cd2f502e",
+      "id": "cd23a8c3-a7d7-420b-b997-57685134d77f",
       "name": "When Called by Agent",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
@@ -41,13 +41,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "e452ce5e-f1e5-454f-8214-d87040cf698b",
-              "name": "sheet_id",
-              "value": "PASTE_YOUR_GOOGLE_SHEET_ID",
-              "type": "string"
-            },
-            {
-              "id": "140831ba-843b-4d4a-bb9c-defb3a9f94f6",
+              "id": "1a33ad35-d49f-4162-b73c-96a29a41f932",
               "name": "telegram_chat_id",
               "value": "PASTE_YOUR_TELEGRAM_CHAT_ID",
               "type": "string"
@@ -56,7 +50,7 @@
         },
         "options": {}
       },
-      "id": "4013bc97-51e0-4be6-8e1a-5425c3fe9495",
+      "id": "13c118e5-f74c-4f5b-8f5a-7ee5fc40163c",
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -67,23 +61,19 @@
     },
     {
       "parameters": {
-        "operation": "read",
-        "documentId": {
-          "__rl": true,
-          "value": "={{ $('Config').first().json.sheet_id }}",
-          "mode": "id"
-        },
-        "sheetName": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
           "__rl": true,
           "value": "Intel_Log",
           "mode": "name"
         },
-        "options": {}
+        "returnAll": true
       },
-      "id": "1d28fb87-0b5d-4bc7-84a4-890bcd9d2f95",
+      "id": "d0e887f9-7b5d-44d1-831b-fba28cdfdec8",
       "name": "Read Intel_Log",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
       "position": [
         440,
         0
@@ -94,7 +84,7 @@
       "parameters": {
         "jsCode": "// Month-over-month comparison per competitor: last 30 days vs the 30 days before\nconst wanted = String($('When Called by Agent').first().json.competitor || 'all').trim().toLowerCase();\nconst now = Date.now(), DAY = 86400000;\nconst cur = {}, prev = {};\nfunction add(map, r) {\n  const k = r.competitor;\n  map[k] ??= { items: 0, high_impact: 0, score_sum: 0, categories: {} };\n  const m = map[k], s = Number(r.impact_score) || 0;\n  m.items++; m.score_sum += s; if (s >= 7) m.high_impact++;\n  m.categories[r.category] = (m.categories[r.category] || 0) + 1;\n}\nfor (const { json: r } of $input.all()) {\n  if (!r.competitor) continue;\n  if (wanted && wanted !== 'all' && String(r.competitor).toLowerCase() !== wanted) continue;\n  const t = Date.parse(r.date || r.published);\n  if (isNaN(t)) continue;\n  const age = now - t;\n  if (age <= 30 * DAY) add(cur, r); else if (age <= 60 * DAY) add(prev, r);\n}\nconst fmt = m => m\n  ? { items: m.items, high_impact: m.high_impact, avg_impact: +(m.score_sum / m.items).toFixed(1), categories: m.categories }\n  : { items: 0, high_impact: 0, avg_impact: 0, categories: {} };\nconst names = [...new Set([...Object.keys(cur), ...Object.keys(prev)])];\nconst comparison = names.map(n => {\n  const a = fmt(cur[n]), b = fmt(prev[n]);\n  return { competitor: n, last_30_days: a, previous_30_days: b,\n           change_in_items: a.items - b.items, change_in_avg_impact: +(a.avg_impact - b.avg_impact).toFixed(1) };\n});\nreturn [{ json: { generated_at: new Date().toISOString(), competitor_filter: wanted, comparison,\n  note: comparison.length ? '' : 'No logged items in the last 60 days.' } }];"
       },
-      "id": "43d9f364-f481-420d-b1cc-5a14d9f4e1fa",
+      "id": "4dd73394-8950-4a69-8305-47a4c1d8de49",
       "name": "Compute 30-day Deltas",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,

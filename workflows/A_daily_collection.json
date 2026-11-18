@@ -3,13 +3,13 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## Workflow A — Daily Collection & Triage\nRuns every morning: reads the competitor list from Google Sheets, pulls Google News + blog RSS, removes items already seen, classifies each item with Gemini (structured JSON), alerts Telegram for impact ≥ 7 and logs everything to the `Intel_Log` sheet.\n\n**Setup:** fill `sheet_id` and `telegram_chat_id` in **Config**, then select your Google Sheets, Gemini and Telegram credentials.",
+        "content": "## Workflow A — Daily Collection & Triage\nRuns every morning: reads the competitor list from the n8n Data Table `Competitors`, pulls Google News + blog RSS, removes items already seen, classifies each item with Gemini (structured JSON), alerts Telegram for impact ≥ 7 and logs everything to the `Intel_Log` data table.\n\n**Setup:** fill `telegram_chat_id` in **Config**, then select your Gemini and Telegram credentials.",
         "width": 620,
         "height": 260,
         "color": 4
       },
-      "id": "3ba04d56-5296-48c6-9489-c22b30445d3e",
-      "name": "Note f78b01",
+      "id": "20b94eb6-3731-4e49-9fe9-82f959af77a8",
+      "name": "Note a2d514",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -27,7 +27,7 @@
           ]
         }
       },
-      "id": "089f681c-7836-4970-a8d2-8fe22240ab89",
+      "id": "a6ddad96-a63b-47eb-b45f-e139f23dae96",
       "name": "Daily 8 AM",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -41,46 +41,40 @@
         "assignments": {
           "assignments": [
             {
-              "id": "4330d3e4-8e5b-40e9-9c41-63ac0a5da586",
-              "name": "sheet_id",
-              "value": "PASTE_YOUR_GOOGLE_SHEET_ID",
-              "type": "string"
-            },
-            {
-              "id": "a46a0cf2-1e10-4bd5-89d6-017588d0fd3b",
+              "id": "75b51407-1873-4bdb-aa21-6c0484f8cbd0",
               "name": "telegram_chat_id",
               "value": "PASTE_YOUR_TELEGRAM_CHAT_ID",
               "type": "string"
             },
             {
-              "id": "4b50c574-bf68-4d8a-9189-4fdd398bb279",
+              "id": "681e8bb3-99ed-45c8-bde0-1c2e2a1018d6",
               "name": "impact_threshold",
               "value": 7,
               "type": "number"
             },
             {
-              "id": "96cf8b17-6e54-4d83-b151-754f438d48c5",
+              "id": "750943d6-6f47-4dd1-a6e3-a7d284540866",
               "name": "lookback_days",
               "value": 2,
               "type": "number"
             },
             {
-              "id": "524b5d20-bb4e-467d-8a4c-ea92f6249dd8",
+              "id": "f166c2e2-2107-401c-910b-a18d13ba9915",
               "name": "max_items_per_feed",
               "value": 4,
               "type": "number"
             },
             {
-              "id": "5c5d7217-e5d0-437c-9af7-aaac6db14bb8",
+              "id": "08207f89-5845-45e7-b240-8bb3f8b6c7e2",
               "name": "max_items_per_run",
-              "value": 25,
+              "value": 20,
               "type": "number"
             }
           ]
         },
         "options": {}
       },
-      "id": "6c3a8de4-2500-486e-83e9-d030cf80e02c",
+      "id": "82dfa431-ff76-4010-8230-e8ab9950b794",
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -91,23 +85,19 @@
     },
     {
       "parameters": {
-        "operation": "read",
-        "documentId": {
-          "__rl": true,
-          "value": "={{ $('Config').first().json.sheet_id }}",
-          "mode": "id"
-        },
-        "sheetName": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
           "__rl": true,
           "value": "Competitors",
           "mode": "name"
         },
-        "options": {}
+        "returnAll": true
       },
-      "id": "37983840-bc19-4f67-803b-0b4de843c330",
+      "id": "622f73e8-248a-453e-b018-b3d952761645",
       "name": "Read Competitors",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
       "position": [
         440,
         0
@@ -117,7 +107,7 @@
       "parameters": {
         "jsCode": "// One feed per competitor from Google News (always) + their own blog RSS (if provided)\nconst cfg = $('Config').first().json;\nconst out = [];\nfor (const { json: c } of $input.all()) {\n  if (!c.name) continue;\n  if (String(c.active ?? 'TRUE').toUpperCase() === 'FALSE') continue;\n  const query = c.news_query || `\"${c.name}\"`;\n  const q = encodeURIComponent(`${query} when:${cfg.lookback_days}d`);\n  out.push({ json: { competitor: c.name, source_type: 'news',\n    feed_url: `https://news.google.com/rss/search?q=${q}&hl=en-IN&gl=IN&ceid=IN:en` } });\n  if (c.blog_rss) out.push({ json: { competitor: c.name, source_type: 'blog', feed_url: c.blog_rss } });\n}\nreturn out;"
       },
-      "id": "989c28e0-056a-448c-9042-f3990f0299c1",
+      "id": "b5b5133a-b440-4952-9996-3ed8fbdb779a",
       "name": "Build Feed URLs",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -131,7 +121,7 @@
         "url": "={{ $json.feed_url }}",
         "options": {}
       },
-      "id": "6961c817-262d-42f9-8bb4-c3d8ea619fd3",
+      "id": "2143a0de-abc0-4ae4-ad30-b29863f5d7b9",
       "name": "Read RSS Feeds",
       "type": "n8n-nodes-base.rssFeedRead",
       "typeVersion": 1.1,
@@ -146,13 +136,13 @@
         "assignments": {
           "assignments": [
             {
-              "id": "1a52e717-3de2-40dc-8131-d8aeeb5c7714",
+              "id": "5359cef8-68ab-4cbe-afd4-54f23c266e07",
               "name": "competitor",
               "value": "={{ $('Build Feed URLs').item.json.competitor }}",
               "type": "string"
             },
             {
-              "id": "46e1f328-190f-4d16-9ba3-7912e9578311",
+              "id": "d3e00441-cb19-4b6f-9fcc-8f0a521a48b9",
               "name": "source_type",
               "value": "={{ $('Build Feed URLs').item.json.source_type }}",
               "type": "string"
@@ -162,7 +152,7 @@
         "includeOtherFields": true,
         "options": {}
       },
-      "id": "64e91b1b-ae93-4f20-8655-6674101d04cc",
+      "id": "d2cd6cb3-30da-4ebb-8738-f25c68606bdd",
       "name": "Tag Competitor",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -175,7 +165,7 @@
       "parameters": {
         "jsCode": "// Keep only recent, valid items and cap items per feed (protects the free LLM quota)\nconst cfg = $('Config').first().json;\nconst cutoff = Date.now() - Number(cfg.lookback_days) * 86400000;\nconst perFeed = {};\nconst seenTitles = new Set();\nconst out = [];\nfor (const { json: j } of $input.all()) {\n  if (j.error || !j.link || !j.title) continue;\n  const ts = Date.parse(j.isoDate || j.pubDate || '');\n  if (!isNaN(ts) && ts < cutoff) continue;\n  const titleKey = String(j.title).toLowerCase().replace(/\\s+-\\s+[^-]+$/, '').trim();\n  if (seenTitles.has(titleKey)) continue;           // same story syndicated by several outlets\n  seenTitles.add(titleKey);\n  const key = `${j.competitor}|${j.source_type}`;\n  perFeed[key] = (perFeed[key] || 0) + 1;\n  if (perFeed[key] > Number(cfg.max_items_per_feed)) continue;\n  out.push({ json: {\n    competitor: j.competitor,\n    source_type: j.source_type,\n    title: j.title,\n    link: j.link,\n    published: isNaN(ts) ? '' : new Date(ts).toISOString(),\n    snippet: String(j.contentSnippet || j.content || '').replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 600),\n  } });\n}\nreturn out;"
       },
-      "id": "9e976ed0-1ca5-4777-aa2e-40d300eb383a",
+      "id": "85d9dd44-c560-4282-b161-fc663d8c9606",
       "name": "Clean & Filter Recent",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -190,7 +180,7 @@
         "dedupeValue": "={{ $json.link }}",
         "options": {}
       },
-      "id": "eba38c30-faaf-4e17-a0b9-597e6be5d3e2",
+      "id": "eda97148-f843-4b8c-8548-b67bf5d7377b",
       "name": "Remove Already Seen",
       "type": "n8n-nodes-base.removeDuplicates",
       "typeVersion": 2,
@@ -203,7 +193,7 @@
       "parameters": {
         "maxItems": "={{ $('Config').first().json.max_items_per_run }}"
       },
-      "id": "e0d2a04d-0dbb-44e6-989a-bf28d3a2aa3e",
+      "id": "9fba5dae-8809-4880-9ec9-741cbbe2119f",
       "name": "Limit Items",
       "type": "n8n-nodes-base.limit",
       "typeVersion": 1,
@@ -214,8 +204,37 @@
     },
     {
       "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "14699fc0-4162-4060-92c8-87047529e442",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 7,
+        "unit": "seconds"
+      },
+      "id": "695feaea-d864-4ac5-aadd-1734a072f37b",
+      "name": "Pause 7s (free-tier rate limit)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3620,
+        100
+      ]
+    },
+    {
+      "parameters": {
         "promptType": "define",
-        "text": "=Competitor: {{ $('Limit Items').item.json.competitor }}\nSource type: {{ $('Limit Items').item.json.source_type }}\nTitle: {{ $('Limit Items').item.json.title }}\nPublished: {{ $('Limit Items').item.json.published }}\nSnippet: {{ $('Limit Items').item.json.snippet }}\nLink: {{ $('Limit Items').item.json.link }}",
+        "text": "=Competitor: {{ $('Loop Over Items').first().json.competitor }}\nSource type: {{ $('Loop Over Items').first().json.source_type }}\nTitle: {{ $('Loop Over Items').first().json.title }}\nPublished: {{ $('Loop Over Items').first().json.published }}\nSnippet: {{ $('Loop Over Items').first().json.snippet }}\nLink: {{ $('Loop Over Items').first().json.link }}",
         "hasOutputParser": true,
         "messages": {
           "messageValues": [
@@ -225,7 +244,7 @@
           ]
         }
       },
-      "id": "ede13584-c706-4fab-9856-8006026160b1",
+      "id": "e244748e-582d-4925-9541-351b81b2f841",
       "name": "Classify & Score (Gemini)",
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
@@ -245,7 +264,7 @@
           "temperature": 0.2
         }
       },
-      "id": "e3fee6d1-1aa3-48ce-ab25-28ac2957340f",
+      "id": "c3926595-4c37-4be2-9f33-63e1db0af6cc",
       "name": "Gemini 2.5 Flash",
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
@@ -259,7 +278,7 @@
         "schemaType": "manual",
         "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"category\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"pricing\",\n        \"product_launch\",\n        \"hiring\",\n        \"partnership\",\n        \"campaign\",\n        \"other\"\n      ]\n    },\n    \"impact_score\": {\n      \"type\": \"integer\",\n      \"minimum\": 1,\n      \"maximum\": 10\n    },\n    \"is_relevant\": {\n      \"type\": \"boolean\"\n    },\n    \"summary\": {\n      \"type\": \"string\",\n      \"description\": \"One factual sentence summarising the item\"\n    },\n    \"reasoning\": {\n      \"type\": \"string\",\n      \"description\": \"One or two sentences explaining the category and score\"\n    }\n  },\n  \"required\": [\n    \"category\",\n    \"impact_score\",\n    \"is_relevant\",\n    \"summary\",\n    \"reasoning\"\n  ]\n}"
       },
-      "id": "170874de-fd1c-4830-9469-3b5c4de1f88d",
+      "id": "d204d44c-75a7-4bb4-93b4-3a4e201b1f9d",
       "name": "Structured Output Parser",
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
@@ -271,10 +290,10 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={{ JSON.stringify({\n  date: $now.toFormat('yyyy-MM-dd'),\n  competitor: $('Limit Items').item.json.competitor,\n  source_type: $('Limit Items').item.json.source_type,\n  title: $('Limit Items').item.json.title,\n  link: $('Limit Items').item.json.link,\n  published: $('Limit Items').item.json.published,\n  category: $json.output.category,\n  impact_score: Number($json.output.impact_score),\n  is_relevant: $json.output.is_relevant,\n  summary: $json.output.summary,\n  reasoning: $json.output.reasoning,\n  model_used: 'gemini-2.5-flash'\n}) }}",
+        "jsonOutput": "={{ JSON.stringify({\n  date: $now.toFormat('yyyy-MM-dd'),\n  competitor: $('Loop Over Items').first().json.competitor,\n  source_type: $('Loop Over Items').first().json.source_type,\n  title: $('Loop Over Items').first().json.title,\n  link: $('Loop Over Items').first().json.link,\n  published: $('Loop Over Items').first().json.published,\n  category: $json.output.category,\n  impact_score: Number($json.output.impact_score),\n  is_relevant: String($json.output.is_relevant),\n  summary: $json.output.summary,\n  reasoning: $json.output.reasoning,\n  model_used: 'gemini-2.5-flash'\n}) }}",
         "options": {}
       },
-      "id": "e6c5a3e9-50d8-49db-bdca-4c4e7bca7f11",
+      "id": "54a3392a-c5b4-44a2-8a59-4ccc5070f327",
       "name": "Build Log Row",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -286,7 +305,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Competitor: {{ $('Limit Items').item.json.competitor }}\nSource type: {{ $('Limit Items').item.json.source_type }}\nTitle: {{ $('Limit Items').item.json.title }}\nPublished: {{ $('Limit Items').item.json.published }}\nSnippet: {{ $('Limit Items').item.json.snippet }}\nLink: {{ $('Limit Items').item.json.link }}",
+        "text": "=Competitor: {{ $('Loop Over Items').first().json.competitor }}\nSource type: {{ $('Loop Over Items').first().json.source_type }}\nTitle: {{ $('Loop Over Items').first().json.title }}\nPublished: {{ $('Loop Over Items').first().json.published }}\nSnippet: {{ $('Loop Over Items').first().json.snippet }}\nLink: {{ $('Loop Over Items').first().json.link }}",
         "hasOutputParser": true,
         "messages": {
           "messageValues": [
@@ -296,7 +315,7 @@
           ]
         }
       },
-      "id": "c470f44e-a135-4bb6-b8b2-0c45c8bb5ed2",
+      "id": "65898869-d074-4314-ae91-8bf8b68bdffe",
       "name": "Fallback Classifier (Flash-Lite)",
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
@@ -315,7 +334,7 @@
           "temperature": 0.2
         }
       },
-      "id": "788aaf21-ecdf-4c3c-824f-d23bbe333025",
+      "id": "cbbce1b0-bebe-429b-a366-ef084fb7147c",
       "name": "Gemini Flash-Lite (fallback)",
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
@@ -329,7 +348,7 @@
         "schemaType": "manual",
         "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"category\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"pricing\",\n        \"product_launch\",\n        \"hiring\",\n        \"partnership\",\n        \"campaign\",\n        \"other\"\n      ]\n    },\n    \"impact_score\": {\n      \"type\": \"integer\",\n      \"minimum\": 1,\n      \"maximum\": 10\n    },\n    \"is_relevant\": {\n      \"type\": \"boolean\"\n    },\n    \"summary\": {\n      \"type\": \"string\",\n      \"description\": \"One factual sentence summarising the item\"\n    },\n    \"reasoning\": {\n      \"type\": \"string\",\n      \"description\": \"One or two sentences explaining the category and score\"\n    }\n  },\n  \"required\": [\n    \"category\",\n    \"impact_score\",\n    \"is_relevant\",\n    \"summary\",\n    \"reasoning\"\n  ]\n}"
       },
-      "id": "9be5e7d6-94c1-43f2-82a5-1ff9edced7d2",
+      "id": "53093821-5efb-4486-ba1c-b4e4aadba68f",
       "name": "Fallback Output Parser",
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
@@ -341,10 +360,10 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={{ JSON.stringify({\n  date: $now.toFormat('yyyy-MM-dd'),\n  competitor: $('Limit Items').item.json.competitor,\n  source_type: $('Limit Items').item.json.source_type,\n  title: $('Limit Items').item.json.title,\n  link: $('Limit Items').item.json.link,\n  published: $('Limit Items').item.json.published,\n  category: $json.output.category,\n  impact_score: Number($json.output.impact_score),\n  is_relevant: $json.output.is_relevant,\n  summary: $json.output.summary,\n  reasoning: $json.output.reasoning,\n  model_used: 'gemini-2.5-flash-lite (fallback)'\n}) }}",
+        "jsonOutput": "={{ JSON.stringify({\n  date: $now.toFormat('yyyy-MM-dd'),\n  competitor: $('Loop Over Items').first().json.competitor,\n  source_type: $('Loop Over Items').first().json.source_type,\n  title: $('Loop Over Items').first().json.title,\n  link: $('Loop Over Items').first().json.link,\n  published: $('Loop Over Items').first().json.published,\n  category: $json.output.category,\n  impact_score: Number($json.output.impact_score),\n  is_relevant: String($json.output.is_relevant),\n  summary: $json.output.summary,\n  reasoning: $json.output.reasoning,\n  model_used: 'gemini-2.5-flash-lite (fallback)'\n}) }}",
         "options": {}
       },
-      "id": "385fd30c-1846-4a7c-aa72-4587f85c8a37",
+      "id": "43607156-939d-4ca3-ad0e-353c4455c8c5",
       "name": "Build Log Row (fallback)",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -364,7 +383,7 @@
           },
           "conditions": [
             {
-              "id": "71adbacb-70fd-468a-a78a-89e6346b24df",
+              "id": "19820089-b2f6-48a0-9c61-bfd8300c400c",
               "leftValue": "={{ Number($json.impact_score) }}",
               "rightValue": "={{ $('Config').first().json.impact_threshold }}",
               "operator": {
@@ -378,7 +397,7 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "5973d3fc-8a2d-467e-aeb0-beb182a955e9",
+      "id": "fa729d1d-820b-49b3-9dfe-ef1fac53fc4b",
       "name": "Impact ≥ Threshold?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -395,7 +414,7 @@
           "appendAttribution": false
         }
       },
-      "id": "61ac00f0-a2f7-427d-845b-854507ca68b2",
+      "id": "a8ca0fae-c8d7-4b3e-9715-b4f874af8473",
       "name": "Telegram Alert",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
@@ -406,14 +425,12 @@
     },
     {
       "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={{ JSON.stringify({ ...$('Impact ≥ Threshold?').item.json, alerted: 'yes' }) }}",
-        "options": {}
+        "jsCode": "return [{ json: { ...$('Impact ≥ Threshold?').first().json, alerted: 'yes' } }];"
       },
-      "id": "a011d206-8300-49bb-baf6-3df84f640bdc",
+      "id": "452ee78e-8b64-4381-bab4-44204670b3e7",
       "name": "Mark Alerted",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         3160,
         0
@@ -421,14 +438,12 @@
     },
     {
       "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={{ JSON.stringify({ ...$json, alerted: 'no' }) }}",
-        "options": {}
+        "jsCode": "return $input.all().map(i => ({ json: { ...i.json, alerted: 'no' } }));"
       },
-      "id": "3f710a34-e4ef-44e9-b724-160712c8ab04",
+      "id": "99a17cb6-d9f2-440a-9033-8c044a5a37bf",
       "name": "Mark Logged Only",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         2940,
         220
@@ -436,13 +451,9 @@
     },
     {
       "parameters": {
-        "operation": "append",
-        "documentId": {
-          "__rl": true,
-          "value": "={{ $('Config').first().json.sheet_id }}",
-          "mode": "id"
-        },
-        "sheetName": {
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
           "__rl": true,
           "value": "Intel_Log",
           "mode": "name"
@@ -455,10 +466,10 @@
         },
         "options": {}
       },
-      "id": "76cde456-31e2-46ba-abff-3cf80fa770ad",
+      "id": "e4e6a465-f8ad-44d3-8fb7-94e478db256c",
       "name": "Append to Intel_Log",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
       "position": [
         3400,
         100
@@ -558,7 +569,41 @@
       "main": [
         [
           {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
             "node": "Classify & Score (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append to Intel_Log": {
+      "main": [
+        [
+          {
+            "node": "Pause 7s (free-tier rate limit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pause 7s (free-tier rate limit)": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
             "type": "main",
             "index": 0
           }

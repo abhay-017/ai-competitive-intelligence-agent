@@ -8,8 +8,8 @@
         "height": 220,
         "color": 3
       },
-      "id": "de4d022f-c291-48af-b626-6c277b6bdede",
-      "name": "Note b58182",
+      "id": "531d99a6-496e-4458-bff2-5190ec43b00e",
+      "name": "Note 9c163c",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -19,7 +19,7 @@
     },
     {
       "parameters": {},
-      "id": "659e23b6-17f2-4def-bbef-5e6e9c93e2cb",
+      "id": "40be6f0e-bbea-429c-8214-5e7288b3b32f",
       "name": "Error Trigger",
       "type": "n8n-nodes-base.errorTrigger",
       "typeVersion": 1,
@@ -33,13 +33,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "c0185ffe-0f0e-46a7-a749-e7e338acac28",
-              "name": "sheet_id",
-              "value": "PASTE_YOUR_GOOGLE_SHEET_ID",
-              "type": "string"
-            },
-            {
-              "id": "df16c1c9-4d01-4344-9071-d765278de1e4",
+              "id": "7b9f50a0-f24f-470f-b84a-d0a41ba1c8b2",
               "name": "telegram_chat_id",
               "value": "PASTE_YOUR_TELEGRAM_CHAT_ID",
               "type": "string"
@@ -48,7 +42,7 @@
         },
         "options": {}
       },
-      "id": "08189e95-b7a9-4cf4-a60a-d4ff1b9051aa",
+      "id": "e621fe61-f1b8-4ebd-b7f4-3ae058a0d18e",
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -64,12 +58,12 @@
         "messages": {
           "messageValues": [
             {
-              "message": "You are an n8n on-call engineer. In at most 3 short lines, state the most likely cause of this failure and the concrete fix (e.g. expired credential, Gemini rate limit/quota, wrong Sheet ID, Telegram chat not started). Plain text."
+              "message": "You are an n8n on-call engineer. In at most 3 short lines, state the most likely cause of this failure and the concrete fix (e.g. expired credential, Gemini rate limit/quota, missing data table, Telegram chat not started). Plain text."
             }
           ]
         }
       },
-      "id": "3f919a48-95ba-4141-b918-49be6ca2ad3b",
+      "id": "a3226b14-0ac4-4e97-a45c-e55c256c9a3a",
       "name": "Diagnose Error (fallback model)",
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
@@ -86,7 +80,7 @@
           "temperature": 0.2
         }
       },
-      "id": "d3099ef3-0707-4737-84b3-ea2cdbf16fed",
+      "id": "8ee2193f-9b42-4cc5-963a-52c8db1f16c4",
       "name": "Gemini Flash-Lite (fallback)",
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
@@ -103,7 +97,7 @@
           "appendAttribution": false
         }
       },
-      "id": "87cf67f1-fb05-4c9f-82d2-329b66a1d2c3",
+      "id": "407b233b-4e83-43c2-8669-a4d3f76a131e",
       "name": "Telegram Error Alert",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,

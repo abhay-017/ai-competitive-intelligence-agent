@@ -3,13 +3,13 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## Workflow B — Weekly Analyst Agent + Human Approval\nEvery Monday the AI Agent (Gemini) reads the log, compares with last month and searches the web, then writes a partner-style brief: headline moves, SWOT delta, threats/opportunities and 3 actions. The brief is sent to Telegram for **Approve / Decline**. Approved briefs are marked **final**, emailed via Gmail and logged in `Briefs`.",
+        "content": "## Workflow B — Weekly Analyst Agent + Human Approval\nEvery Monday the AI Agent (Gemini) reads the log, compares with last month and searches the web, then writes a partner-style brief: headline moves, SWOT delta, threats/opportunities and 3 actions. The brief is sent to Telegram for **Approve / Decline**. Approved briefs are marked **final**, emailed via Gmail and logged in the `Briefs` data table.",
         "width": 640,
         "height": 240,
         "color": 4
       },
-      "id": "a135bc29-6cfc-49bd-b023-d54299c8ba3a",
-      "name": "Note e0c51d",
+      "id": "7c9a01f7-f6f2-4f28-ab30-7c185495a670",
+      "name": "Note 1955b5",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -31,7 +31,7 @@
           ]
         }
       },
-      "id": "014b090f-94a1-464d-9b7f-ede8f61bff23",
+      "id": "9cf72179-4a3f-4f62-979e-0c7573c554f0",
       "name": "Every Monday 9 AM",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -45,19 +45,13 @@
         "assignments": {
           "assignments": [
             {
-              "id": "f55db1c6-09f1-4ff1-992d-dd846ba83c8b",
-              "name": "sheet_id",
-              "value": "PASTE_YOUR_GOOGLE_SHEET_ID",
-              "type": "string"
-            },
-            {
-              "id": "1b04f124-5b5b-48a0-874b-155cc8ce80a4",
+              "id": "7df5e436-5a2d-44cc-9bd6-1d540404bb26",
               "name": "telegram_chat_id",
               "value": "PASTE_YOUR_TELEGRAM_CHAT_ID",
               "type": "string"
             },
             {
-              "id": "ace85fd2-e3aa-4cb1-bb98-712cce3d35c2",
+              "id": "5bd120be-3548-4b97-9a53-6146fafa5229",
               "name": "brief_email",
               "value": "PASTE_RECIPIENT_EMAIL",
               "type": "string"
@@ -66,7 +60,7 @@
         },
         "options": {}
       },
-      "id": "990d972f-543f-46a2-a317-bc4370437631",
+      "id": "cb125cfd-7dfb-4031-8fb9-408b293d8ac7",
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -84,7 +78,7 @@
           "maxIterations": 12
         }
       },
-      "id": "65bee319-4d7b-4041-89b6-0c0158c2190a",
+      "id": "d5e1fae2-84f2-42c5-9a89-d5c721f95318",
       "name": "Analyst Agent",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -103,7 +97,7 @@
           "temperature": 0.4
         }
       },
-      "id": "50158ae6-ece6-4469-97af-3b6022aeef79",
+      "id": "785f2de8-11fa-4630-8bb1-22d29d3f8f23",
       "name": "Gemini 2.5 Flash",
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
@@ -118,7 +112,7 @@
         "sessionKey": "weekly-strategy-brief",
         "contextWindowLength": 6
       },
-      "id": "8a871844-96b8-417a-b1b4-03d30210b81c",
+      "id": "71f17011-e15c-4e67-8653-1d03175fb6db",
       "name": "Window Buffer Memory",
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
@@ -130,24 +124,20 @@
     {
       "parameters": {
         "descriptionType": "manual",
-        "toolDescription": "Reads every logged competitor-intelligence item from the Intel_Log sheet. Columns: date (logged), competitor, source_type, title, link, published, category (pricing/product_launch/hiring/partnership/campaign/other), impact_score (1-10), is_relevant, summary, reasoning, model_used, alerted.",
-        "operation": "read",
-        "documentId": {
-          "__rl": true,
-          "value": "={{ $('Config').first().json.sheet_id }}",
-          "mode": "id"
-        },
-        "sheetName": {
+        "toolDescription": "Reads every logged competitor-intelligence item from the Intel_Log data table. Columns: date (logged), competitor, source_type, title, link, published, category (pricing/product_launch/hiring/partnership/campaign/other), impact_score (1-10), is_relevant, summary, reasoning, model_used, alerted.",
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
           "__rl": true,
           "value": "Intel_Log",
           "mode": "name"
         },
-        "options": {}
+        "returnAll": true
       },
-      "id": "8f729f94-a273-4c13-baf5-a1ea1390ef95",
+      "id": "db3d5a4f-8eb9-48d3-b25a-48af15654c47",
       "name": "read_intel_log",
-      "type": "n8n-nodes-base.googleSheetsTool",
-      "typeVersion": 4.7,
+      "type": "n8n-nodes-base.dataTableTool",
+      "typeVersion": 1.1,
       "position": [
         580,
         260
@@ -159,7 +149,7 @@
         "url": "=https://news.google.com/rss/search?q={{ encodeURIComponent($fromAI('query', 'short news search query', 'string')) }}&hl=en-IN&gl=IN&ceid=IN:en",
         "options": {}
       },
-      "id": "a92a079f-17ff-4ac0-ae67-a807ce4bd9a9",
+      "id": "b80ba8b5-d455-4696-b1c6-8fcdbeb10e60",
       "name": "web_search",
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
@@ -198,7 +188,7 @@
           "convertFieldsToString": false
         }
       },
-      "id": "d3849b00-30ab-4c23-add2-b35ddd96786e",
+      "id": "279d4d55-1dae-4489-8bbd-8a56568f0be4",
       "name": "compare_with_last_month",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.2,
@@ -212,19 +202,19 @@
         "assignments": {
           "assignments": [
             {
-              "id": "0273df25-a5af-4bda-868f-b9d4461d1781",
+              "id": "1e67f1cb-a4a9-4cf0-b142-8cd9133cac40",
               "name": "week",
               "value": "={{ $now.toFormat(\"kkkk-'W'WW\") }}",
               "type": "string"
             },
             {
-              "id": "827a205e-702f-4e37-b405-bc8ffdf5579a",
+              "id": "7a51d09e-b6d0-4588-9de3-ccf14384e8e8",
               "name": "brief_markdown",
               "value": "={{ $json.output }}",
               "type": "string"
             },
             {
-              "id": "69fa94c0-a2a3-475e-91ba-b15769474086",
+              "id": "a04105bf-cbfe-469a-b8a4-1837f07597de",
               "name": "generated_at",
               "value": "={{ $now.toISO() }}",
               "type": "string"
@@ -233,7 +223,7 @@
         },
         "options": {}
       },
-      "id": "0fbdaf27-ca00-4e3c-a2c1-befd58d76e8c",
+      "id": "152295f1-7fe2-49ff-88b1-d66132b65c95",
       "name": "Prepare Brief",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -262,7 +252,7 @@
           }
         }
       },
-      "id": "7564b27a-53da-4b99-aca3-ae3f28609f9d",
+      "id": "9b7708bc-7da6-4768-bbe7-4207eb98a597",
       "name": "Telegram Approval",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
@@ -282,7 +272,7 @@
           },
           "conditions": [
             {
-              "id": "7b3248dd-53e8-4bc6-ace2-2fc87149931f",
+              "id": "1a9ad1cc-e1d2-4858-87df-78f258b85264",
               "leftValue": "={{ $json.data.approved }}",
               "rightValue": "",
               "operator": {
@@ -297,7 +287,7 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "72a94685-e029-4054-9901-349a00ce261e",
+      "id": "b5d45f33-4916-4058-86c8-df9050f798a8",
       "name": "Approved?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -315,7 +305,7 @@
           "tables": true
         }
       },
-      "id": "4bfc0a1a-dd61-4f92-af3b-320c24cd7b8e",
+      "id": "7c696e6c-d9a0-4b99-9382-fd1d6661f0d0",
       "name": "Markdown → HTML",
       "type": "n8n-nodes-base.markdown",
       "typeVersion": 1,
@@ -333,7 +323,7 @@
           "appendAttribution": false
         }
       },
-      "id": "db42bb0f-33b2-4ff4-b1ab-39a7f17bcf5b",
+      "id": "0557a0b1-e5aa-427f-b208-cf3280c5e9c9",
       "name": "Email Brief (Gmail)",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
@@ -348,7 +338,7 @@
         "jsonOutput": "={{ JSON.stringify({ week: $('Prepare Brief').item.json.week, generated_at: $('Prepare Brief').item.json.generated_at, status: 'final', brief: $('Prepare Brief').item.json.brief_markdown.replace(/DRAFT/g, 'FINAL') }) }}",
         "options": {}
       },
-      "id": "e092e5cd-b00d-435d-b04b-a6e9cbd59fbc",
+      "id": "8db421a2-c63e-4cef-ae08-11cd3d8f5281",
       "name": "Mark Final",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -363,7 +353,7 @@
         "jsonOutput": "={{ JSON.stringify({ week: $('Prepare Brief').item.json.week, generated_at: $('Prepare Brief').item.json.generated_at, status: 'rejected', brief: $('Prepare Brief').item.json.brief_markdown }) }}",
         "options": {}
       },
-      "id": "f9b8ecea-f964-473e-b0e4-25854dcc0ffd",
+      "id": "a86e1860-bc00-4ad6-9595-9e1e1c28d367",
       "name": "Mark Rejected",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -374,13 +364,9 @@
     },
     {
       "parameters": {
-        "operation": "append",
-        "documentId": {
-          "__rl": true,
-          "value": "={{ $('Config').first().json.sheet_id }}",
-          "mode": "id"
-        },
-        "sheetName": {
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
           "__rl": true,
           "value": "Briefs",
           "mode": "name"
@@ -393,10 +379,10 @@
         },
         "options": {}
       },
-      "id": "91277c8e-5e53-4ccb-8b57-27c89343b15f",
+      "id": "133ca8b8-0299-4fb4-bbb8-c20b10833161",
       "name": "Log to Briefs",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
       "position": [
         2140,
         0
