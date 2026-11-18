@@ -1,0 +1,6 @@
+name,website,news_query,blog_rss,keywords,active
+Notion,https://www.notion.com,"""Notion"" (AI OR pricing OR launch OR workspace)",,"Notion AI, Notion Mail, Notion Calendar, pricing",TRUE
+Atlassian,https://www.atlassian.com,"Atlassian (Jira OR Confluence OR Rovo OR Loom)",https://www.atlassian.com/blog/feed,"Jira, Confluence, Rovo, Loom, pricing",TRUE
+Asana,https://asana.com,"""Asana"" (AI OR pricing OR launch OR partnership)",https://blog.asana.com/feed/,"AI Studio, AI Teammates, pricing",TRUE
+monday.com,https://monday.com,"""monday.com"" (AI OR pricing OR launch OR CRM)",https://monday.com/blog/feed/,"monday AI, monday CRM, monday dev, pricing",TRUE
+Linear,https://linear.app,"""Linear"" (app OR software OR issue tracking OR startup)",https://linear.app/rss/changelog.xml,"Linear Asks, Linear Insights, AI agents",TRUE
