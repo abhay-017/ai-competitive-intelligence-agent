@@ -1,0 +1,585 @@
+{
+  "name": "CI Agent · B - Weekly Analyst Brief",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Workflow B — Weekly Analyst Agent + Human Approval\nEvery Monday the AI Agent (Gemini) reads the log, compares with last month and searches the web, then writes a partner-style brief: headline moves, SWOT delta, threats/opportunities and 3 actions. The brief is sent to Telegram for **Approve / Decline**. Approved briefs are marked **final**, emailed via Gmail and logged in `Briefs`.",
+        "width": 640,
+        "height": 240,
+        "color": 4
+      },
+      "id": "a135bc29-6cfc-49bd-b023-d54299c8ba3a",
+      "name": "Note e0c51d",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        -420
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "014b090f-94a1-464d-9b7f-ede8f61bff23",
+      "name": "Every Monday 9 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f55db1c6-09f1-4ff1-992d-dd846ba83c8b",
+              "name": "sheet_id",
+              "value": "PASTE_YOUR_GOOGLE_SHEET_ID",
+              "type": "string"
+            },
+            {
+              "id": "1b04f124-5b5b-48a0-874b-155cc8ce80a4",
+              "name": "telegram_chat_id",
+              "value": "PASTE_YOUR_TELEGRAM_CHAT_ID",
+              "type": "string"
+            },
+            {
+              "id": "ace85fd2-e3aa-4cb1-bb98-712cce3d35c2",
+              "name": "brief_email",
+              "value": "PASTE_RECIPIENT_EMAIL",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "990d972f-543f-46a2-a317-bc4370437631",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Today is {{ $now.toFormat('cccc, dd LLL yyyy') }}. Write this week's brief for the week starting {{ $now.minus({days: 7}).toFormat('dd LLL yyyy') }}.",
+        "options": {
+          "systemMessage": "You are a partner at a strategy consultancy writing the weekly competitive-intelligence brief for the Head of Product and the Head of Marketing of a company competing in the product-management / work-management software market (Notion, Atlassian Jira & Confluence, Asana, monday.com, Linear and similar tools).\n\nMethod:\n1. Call read_intel_log and focus on items whose `date` falls in the last 7 days (also use older items for context).\n2. Call compare_with_last_month with \"all\" to see month-over-month changes in activity.\n3. Use web_search only to verify or add context to the most important moves (max 3 searches).\n4. Ignore items with is_relevant = false or impact_score below 4 unless they form a pattern.\n\nWrite the brief in Markdown with exactly these sections:\n# Weekly Competitive Intelligence Brief — <week>\n## 1. Headline moves\n3-5 bullets: what changed, who, and why it matters (cite the impact score).\n## 2. SWOT delta per competitor\nFor each competitor with activity: one line each for new Strengths, Weaknesses, Opportunities, Threats revealed this week (write \"no change\" where nothing moved).\n## 3. Threats and opportunities for us\n## 4. Three recommended actions\nNumbered 1-3. Each: the action, owner (Product / Marketing / Leadership), priority (High/Medium), and why now.\n## 5. Sources\nBullet list of the links you relied on.\n\nRules: be concise and specific, no generic advice, never invent facts or links — if the week was quiet, say so. Mark recommendations as DRAFT; a human approves them before they become final.",
+          "maxIterations": 12
+        }
+      },
+      "id": "65bee319-4d7b-4041-89b6-0c0158c2190a",
+      "name": "Analyst Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        460,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {
+          "temperature": 0.4
+        }
+      },
+      "id": "50158ae6-ece6-4469-97af-3b6022aeef79",
+      "name": "Gemini 2.5 Flash",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        300,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "weekly-strategy-brief",
+        "contextWindowLength": 6
+      },
+      "id": "8a871844-96b8-417a-b1b4-03d30210b81c",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        440,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Reads every logged competitor-intelligence item from the Intel_Log sheet. Columns: date (logged), competitor, source_type, title, link, published, category (pricing/product_launch/hiring/partnership/campaign/other), impact_score (1-10), is_relevant, summary, reasoning, model_used, alerted.",
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Config').first().json.sheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Intel_Log",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "8f729f94-a273-4c13-baf5-a1ea1390ef95",
+      "name": "read_intel_log",
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        580,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Searches recent news (Google News RSS). Input: a short search query such as 'Asana pricing'. Returns RSS XML with titles, links and dates.",
+        "url": "=https://news.google.com/rss/search?q={{ encodeURIComponent($fromAI('query', 'short news search query', 'string')) }}&hl=en-IN&gl=IN&ceid=IN:en",
+        "options": {}
+      },
+      "id": "a92a079f-17ff-4ac0-ae67-a807ce4bd9a9",
+      "name": "web_search",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Compares the last 30 days of logged competitor activity with the previous 30 days. Returns item counts, high-impact counts, average impact score and category mix per competitor. Input: a competitor name, or 'all'.",
+        "workflowId": {
+          "__rl": true,
+          "value": "__COMPARE_WORKFLOW_ID__",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "competitor": "={{ $fromAI('competitor', 'Competitor name exactly as logged, or all', 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "competitor",
+              "displayName": "competitor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "d3849b00-30ab-4c23-add2-b35ddd96786e",
+      "name": "compare_with_last_month",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        860,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0273df25-a5af-4bda-868f-b9d4461d1781",
+              "name": "week",
+              "value": "={{ $now.toFormat(\"kkkk-'W'WW\") }}",
+              "type": "string"
+            },
+            {
+              "id": "827a205e-702f-4e37-b405-bc8ffdf5579a",
+              "name": "brief_markdown",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "69fa94c0-a2a3-475e-91ba-b15769474086",
+              "name": "generated_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0fbdaf27-ca00-4e3c-a2c1-befd58d76e8c",
+      "name": "Prepare Brief",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        820,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "={{ $('Config').first().json.telegram_chat_id }}",
+        "message": "=📋 Weekly brief {{ $json.week }} is ready for review (recommendations are DRAFT until you approve).\n\n{{ $json.brief_markdown.slice(0, 3300) }}{{ $json.brief_markdown.length > 3300 ? '\\n…(truncated)' : '' }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {
+          "limitWaitTime": {
+            "values": {
+              "limitType": "afterTimeInterval",
+              "resumeAmount": 48,
+              "resumeUnit": "hours"
+            }
+          }
+        }
+      },
+      "id": "7564b27a-53da-4b99-aca3-ae3f28609f9d",
+      "name": "Telegram Approval",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1040,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7b3248dd-53e8-4bc6-ace2-2fc87149931f",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "72a94685-e029-4054-9901-349a00ce261e",
+      "name": "Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "markdownToHtml",
+        "markdown": "={{ $('Prepare Brief').item.json.brief_markdown.replace(/DRAFT/g, 'FINAL') }}",
+        "destinationKey": "brief_html",
+        "options": {
+          "tables": true
+        }
+      },
+      "id": "4bfc0a1a-dd61-4f92-af3b-320c24cd7b8e",
+      "name": "Markdown → HTML",
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        1480,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Config').first().json.brief_email }}",
+        "subject": "=Weekly Competitive Intelligence Brief — {{ $('Prepare Brief').item.json.week }}",
+        "message": "={{ $json.brief_html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "db42bb0f-33b2-4ff4-b1ab-39a7f17bcf5b",
+      "name": "Email Brief (Gmail)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1700,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify({ week: $('Prepare Brief').item.json.week, generated_at: $('Prepare Brief').item.json.generated_at, status: 'final', brief: $('Prepare Brief').item.json.brief_markdown.replace(/DRAFT/g, 'FINAL') }) }}",
+        "options": {}
+      },
+      "id": "e092e5cd-b00d-435d-b04b-a6e9cbd59fbc",
+      "name": "Mark Final",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1920,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify({ week: $('Prepare Brief').item.json.week, generated_at: $('Prepare Brief').item.json.generated_at, status: 'rejected', brief: $('Prepare Brief').item.json.brief_markdown }) }}",
+        "options": {}
+      },
+      "id": "f9b8ecea-f964-473e-b0e4-25854dcc0ffd",
+      "name": "Mark Rejected",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1480,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Config').first().json.sheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Briefs",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "91277c8e-5e53-4ccb-8b57-27c89343b15f",
+      "name": "Log to Briefs",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2140,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Every Monday 9 AM": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Analyst Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini 2.5 Flash": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analyst Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Analyst Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "read_intel_log": {
+      "ai_tool": [
+        [
+          {
+            "node": "Analyst Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "web_search": {
+      "ai_tool": [
+        [
+          {
+            "node": "Analyst Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "compare_with_last_month": {
+      "ai_tool": [
+        [
+          {
+            "node": "Analyst Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyst Agent": {
+      "main": [
+        [
+          {
+            "node": "Prepare Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Brief": {
+      "main": [
+        [
+          {
+            "node": "Telegram Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Approval": {
+      "main": [
+        [
+          {
+            "node": "Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved?": {
+      "main": [
+        [
+          {
+            "node": "Markdown → HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown → HTML": {
+      "main": [
+        [
+          {
+            "node": "Email Brief (Gmail)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Brief (Gmail)": {
+      "main": [
+        [
+          {
+            "node": "Mark Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Final": {
+      "main": [
+        [
+          {
+            "node": "Log to Briefs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Rejected": {
+      "main": [
+        [
+          {
+            "node": "Log to Briefs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "__ERROR_WORKFLOW_ID__"
+  },
+  "pinData": {}
+}

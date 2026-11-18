@@ -1,0 +1,720 @@
+{
+  "name": "CI Agent · A - Daily Collection & Triage",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Workflow A — Daily Collection & Triage\nRuns every morning: reads the competitor list from Google Sheets, pulls Google News + blog RSS, removes items already seen, classifies each item with Gemini (structured JSON), alerts Telegram for impact ≥ 7 and logs everything to the `Intel_Log` sheet.\n\n**Setup:** fill `sheet_id` and `telegram_chat_id` in **Config**, then select your Google Sheets, Gemini and Telegram credentials.",
+        "width": 620,
+        "height": 260,
+        "color": 4
+      },
+      "id": "3ba04d56-5296-48c6-9489-c22b30445d3e",
+      "name": "Note f78b01",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        -420
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "089f681c-7836-4970-a8d2-8fe22240ab89",
+      "name": "Daily 8 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4330d3e4-8e5b-40e9-9c41-63ac0a5da586",
+              "name": "sheet_id",
+              "value": "PASTE_YOUR_GOOGLE_SHEET_ID",
+              "type": "string"
+            },
+            {
+              "id": "a46a0cf2-1e10-4bd5-89d6-017588d0fd3b",
+              "name": "telegram_chat_id",
+              "value": "PASTE_YOUR_TELEGRAM_CHAT_ID",
+              "type": "string"
+            },
+            {
+              "id": "4b50c574-bf68-4d8a-9189-4fdd398bb279",
+              "name": "impact_threshold",
+              "value": 7,
+              "type": "number"
+            },
+            {
+              "id": "96cf8b17-6e54-4d83-b151-754f438d48c5",
+              "name": "lookback_days",
+              "value": 2,
+              "type": "number"
+            },
+            {
+              "id": "524b5d20-bb4e-467d-8a4c-ea92f6249dd8",
+              "name": "max_items_per_feed",
+              "value": 4,
+              "type": "number"
+            },
+            {
+              "id": "5c5d7217-e5d0-437c-9af7-aaac6db14bb8",
+              "name": "max_items_per_run",
+              "value": 25,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6c3a8de4-2500-486e-83e9-d030cf80e02c",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Config').first().json.sheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Competitors",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "37983840-bc19-4f67-803b-0b4de843c330",
+      "name": "Read Competitors",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// One feed per competitor from Google News (always) + their own blog RSS (if provided)\nconst cfg = $('Config').first().json;\nconst out = [];\nfor (const { json: c } of $input.all()) {\n  if (!c.name) continue;\n  if (String(c.active ?? 'TRUE').toUpperCase() === 'FALSE') continue;\n  const query = c.news_query || `\"${c.name}\"`;\n  const q = encodeURIComponent(`${query} when:${cfg.lookback_days}d`);\n  out.push({ json: { competitor: c.name, source_type: 'news',\n    feed_url: `https://news.google.com/rss/search?q=${q}&hl=en-IN&gl=IN&ceid=IN:en` } });\n  if (c.blog_rss) out.push({ json: { competitor: c.name, source_type: 'blog', feed_url: c.blog_rss } });\n}\nreturn out;"
+      },
+      "id": "989c28e0-056a-448c-9042-f3990f0299c1",
+      "name": "Build Feed URLs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.feed_url }}",
+        "options": {}
+      },
+      "id": "6961c817-262d-42f9-8bb4-c3d8ea619fd3",
+      "name": "Read RSS Feeds",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        0
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1a52e717-3de2-40dc-8131-d8aeeb5c7714",
+              "name": "competitor",
+              "value": "={{ $('Build Feed URLs').item.json.competitor }}",
+              "type": "string"
+            },
+            {
+              "id": "46e1f328-190f-4d16-9ba3-7912e9578311",
+              "name": "source_type",
+              "value": "={{ $('Build Feed URLs').item.json.source_type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "64e91b1b-ae93-4f20-8655-6674101d04cc",
+      "name": "Tag Competitor",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Keep only recent, valid items and cap items per feed (protects the free LLM quota)\nconst cfg = $('Config').first().json;\nconst cutoff = Date.now() - Number(cfg.lookback_days) * 86400000;\nconst perFeed = {};\nconst seenTitles = new Set();\nconst out = [];\nfor (const { json: j } of $input.all()) {\n  if (j.error || !j.link || !j.title) continue;\n  const ts = Date.parse(j.isoDate || j.pubDate || '');\n  if (!isNaN(ts) && ts < cutoff) continue;\n  const titleKey = String(j.title).toLowerCase().replace(/\\s+-\\s+[^-]+$/, '').trim();\n  if (seenTitles.has(titleKey)) continue;           // same story syndicated by several outlets\n  seenTitles.add(titleKey);\n  const key = `${j.competitor}|${j.source_type}`;\n  perFeed[key] = (perFeed[key] || 0) + 1;\n  if (perFeed[key] > Number(cfg.max_items_per_feed)) continue;\n  out.push({ json: {\n    competitor: j.competitor,\n    source_type: j.source_type,\n    title: j.title,\n    link: j.link,\n    published: isNaN(ts) ? '' : new Date(ts).toISOString(),\n    snippet: String(j.contentSnippet || j.content || '').replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 600),\n  } });\n}\nreturn out;"
+      },
+      "id": "9e976ed0-1ca5-4777-aa2e-40d300eb383a",
+      "name": "Clean & Filter Recent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "removeItemsSeenInPreviousExecutions",
+        "dedupeValue": "={{ $json.link }}",
+        "options": {}
+      },
+      "id": "eba38c30-faaf-4e17-a0b9-597e6be5d3e2",
+      "name": "Remove Already Seen",
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "maxItems": "={{ $('Config').first().json.max_items_per_run }}"
+      },
+      "id": "e0d2a04d-0dbb-44e6-989a-bf28d3a2aa3e",
+      "name": "Limit Items",
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Competitor: {{ $('Limit Items').item.json.competitor }}\nSource type: {{ $('Limit Items').item.json.source_type }}\nTitle: {{ $('Limit Items').item.json.title }}\nPublished: {{ $('Limit Items').item.json.published }}\nSnippet: {{ $('Limit Items').item.json.snippet }}\nLink: {{ $('Limit Items').item.json.link }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a senior competitive-intelligence analyst covering the product-management / work-management software market (Notion, Atlassian Jira & Confluence, Asana, monday.com, Linear and similar tools).\nYou receive ONE news or blog item about a competitor. Classify it and score its strategic importance for a competing product team.\n\nCategories (choose exactly one):\n- pricing: price changes, new plans or tiers, discounts, packaging, free-tier changes\n- product_launch: new products, features, AI capabilities, integrations or major releases\n- hiring: executive hires or departures, layoffs, team expansion, new offices\n- partnership: partnerships, acquisitions, investments, alliances with other companies\n- campaign: marketing campaigns, events, rebrands, positioning or go-to-market pushes\n- other: anything else (earnings, legal, opinion pieces, listicles, tutorials)\n\nimpact_score (integer 1-10):\n- 9-10: could change the market or our roadmap now (major pricing change, flagship AI launch, big acquisition)\n- 7-8: significant move a product leader should hear about today\n- 4-6: notable, worth logging for the weekly brief\n- 1-3: noise (generic listicles, minor tips, passing mentions)\nIf the item is not really about the named competitor, set is_relevant=false, category=other and impact_score=1.\nBe calibrated: most items should score below 7. Base your answer only on the text given."
+            }
+          ]
+        }
+      },
+      "id": "ede13584-c706-4fab-9856-8006026160b1",
+      "name": "Classify & Score (Gemini)",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        1980,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "e3fee6d1-1aa3-48ce-ab25-28ac2957340f",
+      "name": "Gemini 2.5 Flash",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1960,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"category\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"pricing\",\n        \"product_launch\",\n        \"hiring\",\n        \"partnership\",\n        \"campaign\",\n        \"other\"\n      ]\n    },\n    \"impact_score\": {\n      \"type\": \"integer\",\n      \"minimum\": 1,\n      \"maximum\": 10\n    },\n    \"is_relevant\": {\n      \"type\": \"boolean\"\n    },\n    \"summary\": {\n      \"type\": \"string\",\n      \"description\": \"One factual sentence summarising the item\"\n    },\n    \"reasoning\": {\n      \"type\": \"string\",\n      \"description\": \"One or two sentences explaining the category and score\"\n    }\n  },\n  \"required\": [\n    \"category\",\n    \"impact_score\",\n    \"is_relevant\",\n    \"summary\",\n    \"reasoning\"\n  ]\n}"
+      },
+      "id": "170874de-fd1c-4830-9469-3b5c4de1f88d",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2140,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify({\n  date: $now.toFormat('yyyy-MM-dd'),\n  competitor: $('Limit Items').item.json.competitor,\n  source_type: $('Limit Items').item.json.source_type,\n  title: $('Limit Items').item.json.title,\n  link: $('Limit Items').item.json.link,\n  published: $('Limit Items').item.json.published,\n  category: $json.output.category,\n  impact_score: Number($json.output.impact_score),\n  is_relevant: $json.output.is_relevant,\n  summary: $json.output.summary,\n  reasoning: $json.output.reasoning,\n  model_used: 'gemini-2.5-flash'\n}) }}",
+        "options": {}
+      },
+      "id": "e6c5a3e9-50d8-49db-bdca-4c4e7bca7f11",
+      "name": "Build Log Row",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2420,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Competitor: {{ $('Limit Items').item.json.competitor }}\nSource type: {{ $('Limit Items').item.json.source_type }}\nTitle: {{ $('Limit Items').item.json.title }}\nPublished: {{ $('Limit Items').item.json.published }}\nSnippet: {{ $('Limit Items').item.json.snippet }}\nLink: {{ $('Limit Items').item.json.link }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a senior competitive-intelligence analyst covering the product-management / work-management software market (Notion, Atlassian Jira & Confluence, Asana, monday.com, Linear and similar tools).\nYou receive ONE news or blog item about a competitor. Classify it and score its strategic importance for a competing product team.\n\nCategories (choose exactly one):\n- pricing: price changes, new plans or tiers, discounts, packaging, free-tier changes\n- product_launch: new products, features, AI capabilities, integrations or major releases\n- hiring: executive hires or departures, layoffs, team expansion, new offices\n- partnership: partnerships, acquisitions, investments, alliances with other companies\n- campaign: marketing campaigns, events, rebrands, positioning or go-to-market pushes\n- other: anything else (earnings, legal, opinion pieces, listicles, tutorials)\n\nimpact_score (integer 1-10):\n- 9-10: could change the market or our roadmap now (major pricing change, flagship AI launch, big acquisition)\n- 7-8: significant move a product leader should hear about today\n- 4-6: notable, worth logging for the weekly brief\n- 1-3: noise (generic listicles, minor tips, passing mentions)\nIf the item is not really about the named competitor, set is_relevant=false, category=other and impact_score=1.\nBe calibrated: most items should score below 7. Base your answer only on the text given."
+            }
+          ]
+        }
+      },
+      "id": "c470f44e-a135-4bb6-b8b2-0c45c8bb5ed2",
+      "name": "Fallback Classifier (Flash-Lite)",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        2200,
+        460
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "788aaf21-ecdf-4c3c-824f-d23bbe333025",
+      "name": "Gemini Flash-Lite (fallback)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2180,
+        680
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"category\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"pricing\",\n        \"product_launch\",\n        \"hiring\",\n        \"partnership\",\n        \"campaign\",\n        \"other\"\n      ]\n    },\n    \"impact_score\": {\n      \"type\": \"integer\",\n      \"minimum\": 1,\n      \"maximum\": 10\n    },\n    \"is_relevant\": {\n      \"type\": \"boolean\"\n    },\n    \"summary\": {\n      \"type\": \"string\",\n      \"description\": \"One factual sentence summarising the item\"\n    },\n    \"reasoning\": {\n      \"type\": \"string\",\n      \"description\": \"One or two sentences explaining the category and score\"\n    }\n  },\n  \"required\": [\n    \"category\",\n    \"impact_score\",\n    \"is_relevant\",\n    \"summary\",\n    \"reasoning\"\n  ]\n}"
+      },
+      "id": "9be5e7d6-94c1-43f2-82a5-1ff9edced7d2",
+      "name": "Fallback Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2360,
+        680
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify({\n  date: $now.toFormat('yyyy-MM-dd'),\n  competitor: $('Limit Items').item.json.competitor,\n  source_type: $('Limit Items').item.json.source_type,\n  title: $('Limit Items').item.json.title,\n  link: $('Limit Items').item.json.link,\n  published: $('Limit Items').item.json.published,\n  category: $json.output.category,\n  impact_score: Number($json.output.impact_score),\n  is_relevant: $json.output.is_relevant,\n  summary: $json.output.summary,\n  reasoning: $json.output.reasoning,\n  model_used: 'gemini-2.5-flash-lite (fallback)'\n}) }}",
+        "options": {}
+      },
+      "id": "385fd30c-1846-4a7c-aa72-4587f85c8a37",
+      "name": "Build Log Row (fallback)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2420,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "71adbacb-70fd-468a-a78a-89e6346b24df",
+              "leftValue": "={{ Number($json.impact_score) }}",
+              "rightValue": "={{ $('Config').first().json.impact_threshold }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "5973d3fc-8a2d-467e-aeb0-beb182a955e9",
+      "name": "Impact ≥ Threshold?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2700,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Config').first().json.telegram_chat_id }}",
+        "text": "=🚨 High-impact competitor move\n\n{{ $json.competitor }} · {{ $json.category }} · impact {{ $json.impact_score }}/10\n\n{{ $json.summary }}\n\nWhy it matters: {{ $json.reasoning }}\n\n🔗 {{ $json.link }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "61ac00f0-a2f7-427d-845b-854507ca68b2",
+      "name": "Telegram Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2940,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify({ ...$('Impact ≥ Threshold?').item.json, alerted: 'yes' }) }}",
+        "options": {}
+      },
+      "id": "a011d206-8300-49bb-baf6-3df84f640bdc",
+      "name": "Mark Alerted",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3160,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify({ ...$json, alerted: 'no' }) }}",
+        "options": {}
+      },
+      "id": "3f710a34-e4ef-44e9-b724-160712c8ab04",
+      "name": "Mark Logged Only",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2940,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Config').first().json.sheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Intel_Log",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "76cde456-31e2-46ba-abff-3cf80fa770ad",
+      "name": "Append to Intel_Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3400,
+        100
+      ]
+    }
+  ],
+  "connections": {
+    "Daily 8 AM": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Read Competitors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Competitors": {
+      "main": [
+        [
+          {
+            "node": "Build Feed URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Feed URLs": {
+      "main": [
+        [
+          {
+            "node": "Read RSS Feeds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read RSS Feeds": {
+      "main": [
+        [
+          {
+            "node": "Tag Competitor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tag Competitor": {
+      "main": [
+        [
+          {
+            "node": "Clean & Filter Recent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean & Filter Recent": {
+      "main": [
+        [
+          {
+            "node": "Remove Already Seen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Already Seen": {
+      "main": [
+        [
+          {
+            "node": "Limit Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit Items": {
+      "main": [
+        [
+          {
+            "node": "Classify & Score (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini 2.5 Flash": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Classify & Score (Gemini)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Classify & Score (Gemini)",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify & Score (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Build Log Row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fallback Classifier (Flash-Lite)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Flash-Lite (fallback)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Fallback Classifier (Flash-Lite)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fallback Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Fallback Classifier (Flash-Lite)",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fallback Classifier (Flash-Lite)": {
+      "main": [
+        [
+          {
+            "node": "Build Log Row (fallback)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Log Row": {
+      "main": [
+        [
+          {
+            "node": "Impact ≥ Threshold?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Log Row (fallback)": {
+      "main": [
+        [
+          {
+            "node": "Impact ≥ Threshold?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Impact ≥ Threshold?": {
+      "main": [
+        [
+          {
+            "node": "Telegram Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark Logged Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Alert": {
+      "main": [
+        [
+          {
+            "node": "Mark Alerted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Alerted": {
+      "main": [
+        [
+          {
+            "node": "Append to Intel_Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Logged Only": {
+      "main": [
+        [
+          {
+            "node": "Append to Intel_Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "__ERROR_WORKFLOW_ID__"
+  },
+  "pinData": {}
+}

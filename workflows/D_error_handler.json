@@ -1,0 +1,166 @@
+{
+  "name": "CI Agent · D - Error Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Workflow D — Error Handler\nSet as the *Error workflow* of A, B, C and E. When any of them fails, a lightweight **fallback model** (Gemini Flash-Lite) explains the likely cause and fix, and a Telegram alert is sent. If the LLM itself is down, the alert is still sent without the diagnosis.",
+        "width": 600,
+        "height": 220,
+        "color": 3
+      },
+      "id": "de4d022f-c291-48af-b626-6c277b6bdede",
+      "name": "Note b58182",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        -380
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "659e23b6-17f2-4def-bbef-5e6e9c93e2cb",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c0185ffe-0f0e-46a7-a749-e7e338acac28",
+              "name": "sheet_id",
+              "value": "PASTE_YOUR_GOOGLE_SHEET_ID",
+              "type": "string"
+            },
+            {
+              "id": "df16c1c9-4d01-4344-9071-d765278de1e4",
+              "name": "telegram_chat_id",
+              "value": "PASTE_YOUR_TELEGRAM_CHAT_ID",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "08189e95-b7a9-4cf4-a60a-d4ff1b9051aa",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Workflow: {{ $('Error Trigger').item.json.workflow.name }}\nFailed node: {{ $('Error Trigger').item.json.execution.lastNodeExecuted }}\nError message: {{ $('Error Trigger').item.json.execution.error.message }}\nError detail: {{ ($('Error Trigger').item.json.execution.error.description || '').toString().slice(0, 800) }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an n8n on-call engineer. In at most 3 short lines, state the most likely cause of this failure and the concrete fix (e.g. expired credential, Gemini rate limit/quota, wrong Sheet ID, Telegram chat not started). Plain text."
+            }
+          ]
+        }
+      },
+      "id": "3f919a48-95ba-4141-b918-49be6ca2ad3b",
+      "name": "Diagnose Error (fallback model)",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        440,
+        0
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "d3099ef3-0707-4737-84b3-ea2cdbf16fed",
+      "name": "Gemini Flash-Lite (fallback)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        440,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Config').first().json.telegram_chat_id }}",
+        "text": "=⚠️ n8n workflow failed\n\nWorkflow: {{ $('Error Trigger').item.json.workflow.name }}\nNode: {{ $('Error Trigger').item.json.execution.lastNodeExecuted }}\nError: {{ $('Error Trigger').item.json.execution.error.message }}\nExecution: {{ $('Error Trigger').item.json.execution.url }}\n\n🤖 Likely cause & fix:\n{{ $json.text || 'AI diagnosis unavailable (LLM also failed).' }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "87cf67f1-fb05-4c9f-82d2-329b66a1d2c3",
+      "name": "Telegram Error Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        760,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Diagnose Error (fallback model)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Flash-Lite (fallback)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Diagnose Error (fallback model)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Diagnose Error (fallback model)": {
+      "main": [
+        [
+          {
+            "node": "Telegram Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
