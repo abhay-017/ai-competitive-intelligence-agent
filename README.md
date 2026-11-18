@@ -23,8 +23,8 @@ An **n8n + Google Gemini** agent that watches competitors every day, classifies 
 flowchart LR
   subgraph A[Workflow A · Daily 8 AM]
     A1[Schedule] --> A2[Config] --> A3[(Data Table: Competitors)] --> A4[Build feed URLs]
-    A4 --> A5[RSS Read<br/>Google News + blogs] --> A6[Clean, filter recent,<br/>dedupe titles] --> A7[Remove Duplicates<br/>seen in past runs]
-    A7 --> A8[Limit 25] --> A9{{Basic LLM Chain<br/>Gemini 2.5 Flash<br/>+ Structured Output Parser}}
+    A4 --> A5[RSS Read<br/>Google News + blogs] --> A6[Clean, filter recent,<br/>dedupe titles] --> A7[Skip links already<br/>in Intel_Log]
+    A7 --> A8[Limit 20 → loop one<br/>at a time, 7 s pause] --> A9{{Basic LLM Chain<br/>Gemini 2.5 Flash<br/>+ Structured Output Parser}}
     A9 -- error --> A9b{{Fallback chain<br/>Gemini Flash-Lite}}
     A9 --> A10{Impact ≥ 7?}
     A9b --> A10
@@ -64,7 +64,7 @@ flowchart LR
 | Layer | Tool |
 |---|---|
 | Orchestration | **n8n** Community Edition, self-hosted (`localhost:5678`) |
-| LLM | **Google Gemini API**: `gemini-2.5-flash` (main), `gemini-2.5-flash-lite` (fallback) |
+| LLM | **Google Gemini API**: `gemini-2.5-flash` (main), `gemini-flash-lite-latest` (fallback) |
 | AI building blocks | n8n LangChain nodes: Basic LLM Chain, Structured Output Parser, AI Agent, Window Buffer Memory, Tool Workflow, HTTP Request Tool, Data Table Tool |
 | Storage | **n8n Data Tables** (`Competitors`, `Intel_Log`, `Briefs`), built into n8n, no external account |
 | Data sources | Google News RSS (`when:2d` queries), company blog RSS feeds |
@@ -103,7 +103,7 @@ evaluation/  labelled evaluation set template + scoring script
 
 - **Structured output over free text**: the classifier must return a JSON schema (`category` enum, `impact_score` 1–10, `is_relevant`, `summary`, `reasoning`), so its results can be filtered, alerted on and evaluated.
 - **Calibrated scoring rubric** in the prompt (9–10 market-changing, 7–8 alert-worthy, and so on) keeps alerts rare and useful.
-- **Cost guards for the free tier**: a 2-day lookback, at most 4 items per feed, at most 25 LLM calls per run, deduplication across runs (`Remove Duplicates`) and within a run (syndicated titles).
+- **Cost guards for the free tier**: a 2-day lookback, at most 4 items per feed, at most 20 LLM calls per run, one item at a time with a 7-second pause (free-tier rate limit), deduplication against the log itself (Data Table *row not exists* on `link`, so an item that failed is retried next run) and within a run (syndicated titles).
 - **Fallback model**: if the main classifier fails after 3 retries, its *error output* routes the item to a Flash-Lite chain, so the item is still logged and tagged with `model_used`.
 - **Grounded agents**: the Q&A agent may answer only from tool data and must cite links, otherwise it says *"I don't have logged data on that yet."*
 - **Human approval** before any recommendation becomes "final" (n8n *Send and Wait* on Telegram).
@@ -120,4 +120,5 @@ evaluation/  labelled evaluation set template + scoring script
 ## Limitations
 
 Google News snippets are short, so classification sometimes relies on the headline alone. Free-tier Gemini quotas limit how many items can be processed per day. n8n Data Tables are fine for thousands of rows; at larger scale or for semantic search, move to Supabase (Postgres + pgvector). Telegram triggers need a public URL when n8n is self-hosted.
+
 
