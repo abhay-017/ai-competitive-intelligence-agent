@@ -1,4 +1,4 @@
-# Case study: automating competitive intelligence for a work-management SaaS team
+﻿# Case study: automating competitive intelligence for a work-management SaaS team
 
 **Client (illustrative):** a mid-size B2B SaaS company that competes with Notion, Atlassian, Asana, monday.com and Linear.
 
@@ -9,8 +9,8 @@
 
 ## Approach
 1. **Scoped the signal**: 6 categories that map to decisions (pricing, product launch, hiring, partnership, campaign, other) and a 1–10 impact rubric agreed with stakeholders.
-2. **Built a daily pipeline in n8n**: RSS and news collection, deduplication, Gemini classification with a strict JSON schema, Telegram alerts for impact ≥ 7, and a Google Sheets log.
-3. **Built a weekly analyst agent** (Gemini AI Agent with Sheets, web search and month-over-month comparison tools) that writes a partner-style brief: headline moves, SWOT delta, threats and opportunities, 3 actions.
+2. **Built a daily pipeline in n8n**: RSS and news collection, deduplication, Gemini classification with a strict JSON schema, Telegram alerts for impact ≥ 7, and a n8n Data Tables log.
+3. **Built a weekly analyst agent** (Gemini AI Agent with Data Table lookup, web search and month-over-month comparison tools) that writes a partner-style brief: headline moves, SWOT delta, threats and opportunities, 3 actions.
 4. **Kept a human in the loop**: the brief stays *DRAFT* until approved in Telegram.
 5. **Made it reliable**: retries, a fallback model, and an error workflow with an AI-diagnosed alert.
 6. **Measured quality**: a labelled evaluation set of 40 items, with accuracy, alert precision and recall reported honestly.
@@ -46,3 +46,5 @@ The bigger value is not counted here: reacting to a competitor's pricing change 
 
 ## What I would change for a real client
 Connect to their CRM win/loss notes and sales call transcripts (internal signal); store embeddings in pgvector for semantic search; add a 👍/👎 feedback button on alerts to recalibrate scoring; deliver to Slack or Teams instead of Telegram.
+
+

@@ -1,4 +1,4 @@
-# PRD: AI Competitive Intelligence & Strategy Brief Agent
+﻿# PRD: AI Competitive Intelligence & Strategy Brief Agent
 
 ## 1. Problem statement
 Product and marketing teams in the crowded work-management software market (Notion, Atlassian, Asana, monday.com, Linear) learn about competitor moves late and inconsistently. Today one analyst spends roughly **6–8 hours a week** reading news, blogs and changelogs, pasting links into a doc and writing a summary. Important moves, such as a pricing change or a flagship AI launch, are noticed days late, and the weekly summary describes what happened without saying what to do about it.
@@ -16,23 +16,23 @@ Product and marketing teams in the crowded work-management software market (Noti
 2. As a PM, I receive a **weekly brief every Monday** covering headline moves, a SWOT delta per competitor, threats and opportunities, and 3 recommended actions.
 3. As an analyst, I **approve or decline** the brief before it is marked final and emailed, so that no unreviewed AI recommendation reaches leadership.
 4. As a PM, I can **ask questions in Telegram** (*"What did Asana do on pricing this quarter?"*) and get an answer with sources from our own log.
-5. As an analyst, I can **add or remove competitors** by editing a Google Sheet, without touching the workflow.
+5. As an analyst, I can **add or remove competitors** by editing an n8n Data Table, without touching the workflow.
 6. As the owner, I am **alerted when the pipeline fails**, with a likely cause and fix.
 
 ## 4. Scope (v1)
-**In scope:** 5 competitors; Google News and blog RSS; daily classification into 6 categories with a 1–10 impact score; Telegram alerts; Google Sheets log; weekly agent brief with tools (Sheets, web search, month-over-month comparison); human approval; Gmail delivery; Telegram Q&A; error workflow with a fallback model.
+**In scope:** 5 competitors; Google News and blog RSS; daily classification into 6 categories with a 1–10 impact score; Telegram alerts; n8n Data Tables log; weekly agent brief with tools (Data Table lookup, web search, month-over-month comparison); human approval; Gmail delivery; Telegram Q&A; error workflow with a fallback model.
 
 **Deliberately left out (and why):**
 - *Scraping pricing pages and LinkedIn job posts*: brittle, may break terms of service, and needs paid proxies. RSS and news cover about 80% of the signal.
 - *Vector database / RAG*: the log is small (hundreds of rows a month), so Gemini's long context reads it directly. Planned for v2 when the log grows.
 - *Multi-language sources*: English only in v1.
-- *A UI dashboard*: Google Sheets plus Telegram is enough to validate the value first.
+- *A UI dashboard*: n8n Data Tables plus Telegram is enough to validate the value first.
 - *Automatic actions on recommendations*: recommendations stay advisory and approved by a human.
 
 ## 5. Functional requirements
 | ID | Requirement |
 |---|---|
-| F1 | Run daily at 08:00 and read the competitor list from Sheets |
+| F1 | Run daily at 08:00 and read the competitor list from the Competitors data table |
 | F2 | Fetch Google News (last 2 days) and blog RSS per competitor; ignore failing feeds |
 | F3 | Skip items seen in earlier runs and duplicate syndicated headlines |
 | F4 | Classify each item with an LLM into a fixed JSON schema |
@@ -47,7 +47,7 @@ Product and marketing teams in the crowded work-management software market (Noti
 - **Cost:** ₹0 per month (free tiers only). At most 25 LLM calls per daily run.
 - **Latency:** high-impact alert within 24 hours of publication. Brief ready by 09:15 Monday.
 - **Trust:** every claim in the brief and Q&A has a source link. No invented facts.
-- **Maintainability:** all configuration lives in a `Config` node and the Sheet, with no hard-coded secrets in exports.
+- **Maintainability:** all configuration lives in a `Config` node and the Competitors data table, with no hard-coded secrets in exports.
 
 ## 7. Success metrics
 | Metric | Definition | Target (v1) |
@@ -61,3 +61,5 @@ Product and marketing teams in the crowded work-management software market (Noti
 
 ## 8. Risks
 Free-tier quota changes, noisy news matches for generic names ("Linear", "Notion"), LLM over-scoring, and RSS feed changes. Mitigations are listed in the case study.
+
+

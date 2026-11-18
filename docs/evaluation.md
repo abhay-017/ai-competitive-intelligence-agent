@@ -1,11 +1,11 @@
-# Evaluation plan
+﻿# Evaluation plan
 
 ## Why
 An LLM classifier is only useful if its categories and impact scores match what a human analyst would decide. This plan measures that honestly, including failures.
 
 ## Building the evaluation set
 1. Let Workflow A run for 1–2 weeks (or run it manually several times) until `Intel_Log` has 40 or more rows.
-2. Export `Intel_Log` as CSV and copy 40 rows into `evaluation/eval_set.csv` (template: `evaluation/eval_set_template.csv`). Pick a mix: about 10 per main category, plus some noise.
+2. Export the `Intel_Log` data table as CSV and copy 40 rows into `evaluation/eval_set.csv` (template: `evaluation/eval_set_template.csv`). Pick a mix: about 10 per main category, plus some noise.
 3. **Before looking at the model's answer**, fill in `human_category` and `human_impact` (1–10) for each row. Write a short note when unsure.
 4. Run the scorer:
 
@@ -41,3 +41,4 @@ Fill this table after your run. Do not invent numbers.
 | High-impact recall | | |
 | Biggest failure | | |
 | Fix tried | | |
+
