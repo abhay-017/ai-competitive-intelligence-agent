@@ -1,4 +1,4 @@
-﻿# AI Competitive Intelligence & Strategy Brief Agent
+# AI Competitive Intelligence & Strategy Brief Agent
 
 An **n8n + Google Gemini** agent that watches competitors every day, classifies and scores their moves, alerts on the important ones, and writes a **partner-style weekly strategy brief** that a human approves before it becomes final. Built entirely on a **₹0 / free-tier stack**.
 
@@ -95,7 +95,7 @@ evaluation/  labelled evaluation set template + scoring script
 6. In each workflow, open the **Config** node and fill in `telegram_chat_id` and (for B) `brief_email`. Select your credentials on the red-flagged nodes.
 7. In **B** and **C**, open the `compare_with_last_month` tool and pick workflow **E**. In **Settings → Error workflow** of A, B, C and E, pick **D**.
 8. Run **A** manually once, then check the `Intel_Log` data table and Telegram. **Activate** A, B and D.
-9. **C (Telegram Trigger)** needs a public HTTPS URL. Start n8n behind a tunnel (for example `cloudflared tunnel --url http://localhost:5678` or ngrok) with `WEBHOOK_URL=<tunnel url>`, then activate C.
+9. **C (Telegram Trigger)** needs a public HTTPS URL. Download `cloudflared.exe` into `tools/` and run `scripts/start_n8n_with_tunnel.ps1`: it starts a free Cloudflare quick tunnel, then starts n8n with `WEBHOOK_URL` set to the tunnel address, and n8n re-registers the Telegram webhook. Quick-tunnel addresses change on every restart; a named Cloudflare tunnel gives a fixed one.
 
 > Approval buttons are sent by **email**, not Telegram: Telegram only accepts public https button URLs, while a self-hosted n8n resume URL is `http://localhost:5678`. The email links work when clicked on the same PC; with a tunnel (step 9) they work from anywhere.
 
