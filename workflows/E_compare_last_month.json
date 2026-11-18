@@ -8,8 +8,8 @@
         "height": 200,
         "color": 6
       },
-      "id": "10576833-00bd-478f-8349-5687b5f55897",
-      "name": "Note 0c403a",
+      "id": "a1cd8094-8657-4535-91ff-7d2471b2f76b",
+      "name": "Note f36cc0",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -27,7 +27,7 @@
           ]
         }
       },
-      "id": "9e985063-771a-479c-813c-6b113eaa12df",
+      "id": "a5472fb2-db15-4d75-8392-b5eb3ec3304b",
       "name": "When Called by Agent",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
@@ -41,7 +41,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "e99bbdbe-7798-4614-9671-a2492d2e04f7",
+              "id": "b6eef121-ced6-49cf-a302-a7fef99a39e1",
               "name": "telegram_chat_id",
               "value": "PASTE_YOUR_TELEGRAM_CHAT_ID",
               "type": "string"
@@ -50,7 +50,7 @@
         },
         "options": {}
       },
-      "id": "71ead625-674c-452a-b559-210154c061f3",
+      "id": "10330dd2-0fd0-4c3d-8bcc-7868d0577676",
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -70,7 +70,7 @@
         },
         "returnAll": true
       },
-      "id": "b1bafbfc-c930-4f0d-8ae3-a751dfb08233",
+      "id": "bea839c1-cc74-4468-941f-82fe701897f8",
       "name": "Read Intel_Log",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -84,7 +84,7 @@
       "parameters": {
         "jsCode": "// Month-over-month comparison per competitor: last 30 days vs the 30 days before\nconst wanted = String($('When Called by Agent').first().json.competitor || 'all').trim().toLowerCase();\nconst now = Date.now(), DAY = 86400000;\nconst cur = {}, prev = {};\nfunction add(map, r) {\n  const k = r.competitor;\n  map[k] ??= { items: 0, high_impact: 0, score_sum: 0, categories: {} };\n  const m = map[k], s = Number(r.impact_score) || 0;\n  m.items++; m.score_sum += s; if (s >= 7) m.high_impact++;\n  m.categories[r.category] = (m.categories[r.category] || 0) + 1;\n}\nfor (const { json: r } of $input.all()) {\n  if (!r.competitor) continue;\n  if (wanted && wanted !== 'all' && String(r.competitor).toLowerCase() !== wanted) continue;\n  const t = Date.parse(r.date || r.published);\n  if (isNaN(t)) continue;\n  const age = now - t;\n  if (age <= 30 * DAY) add(cur, r); else if (age <= 60 * DAY) add(prev, r);\n}\nconst fmt = m => m\n  ? { items: m.items, high_impact: m.high_impact, avg_impact: +(m.score_sum / m.items).toFixed(1), categories: m.categories }\n  : { items: 0, high_impact: 0, avg_impact: 0, categories: {} };\nconst names = [...new Set([...Object.keys(cur), ...Object.keys(prev)])];\nconst comparison = names.map(n => {\n  const a = fmt(cur[n]), b = fmt(prev[n]);\n  return { competitor: n, last_30_days: a, previous_30_days: b,\n           change_in_items: a.items - b.items, change_in_avg_impact: +(a.avg_impact - b.avg_impact).toFixed(1) };\n});\nreturn [{ json: { generated_at: new Date().toISOString(), competitor_filter: wanted, comparison,\n  note: comparison.length ? '' : 'No logged items in the last 60 days.' } }];"
       },
-      "id": "07eab296-c45a-4cfd-9d4d-16db92d8cbbd",
+      "id": "d37a1028-542c-4eb2-9279-11d60a6c5da0",
       "name": "Compute 30-day Deltas",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,

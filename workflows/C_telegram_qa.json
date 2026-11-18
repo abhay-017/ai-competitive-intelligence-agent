@@ -8,8 +8,8 @@
         "height": 240,
         "color": 4
       },
-      "id": "a8f88634-48a3-4b4d-9fa4-e902f160d71d",
-      "name": "Note aed6bf",
+      "id": "a6498097-1d40-4225-a2f6-9a4436ef4e64",
+      "name": "Note e6e231",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -24,21 +24,22 @@
         ],
         "additionalFields": {}
       },
-      "id": "353471ef-bb4a-4f13-af58-caa076afa144",
+      "id": "b6e8e0e4-81b0-4df8-8f6b-299d22da22d4",
       "name": "Telegram Trigger",
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
       "position": [
         0,
         0
-      ]
+      ],
+      "webhookId": "80e367b3-bce8-44e0-99b2-68b1d4c7ba6b"
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "aabd4ac8-84fc-4289-9479-905f365dc8bb",
+              "id": "fb936323-9366-4009-b266-90d8311be7e0",
               "name": "telegram_chat_id",
               "value": "PASTE_YOUR_TELEGRAM_CHAT_ID",
               "type": "string"
@@ -47,7 +48,7 @@
         },
         "options": {}
       },
-      "id": "bf99445b-b88e-4485-be54-f38a3f2c0640",
+      "id": "c6d7788d-7412-47d6-bfcd-ee7f54e4b4ed",
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -67,7 +68,7 @@
           },
           "conditions": [
             {
-              "id": "ac0bb968-8b0e-4c83-a973-5ea933f42e2d",
+              "id": "f8581033-544f-409c-afad-723431583a31",
               "leftValue": "={{ String($('Telegram Trigger').item.json.message.chat.id) }}",
               "rightValue": "={{ String($json.telegram_chat_id) }}",
               "operator": {
@@ -81,7 +82,7 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "c7403293-47cb-4df0-81b6-3fd16a7ad570",
+      "id": "201a1272-23ad-4c47-8975-00b7af0e8421",
       "name": "Authorised Chat?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -99,14 +100,17 @@
           "maxIterations": 8
         }
       },
-      "id": "2c28de5a-97fb-480f-831c-06dac17ef794",
+      "id": "d135af52-d7ff-42ad-b15e-413dee1de90d",
       "name": "Q&A Agent",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
       "position": [
         680,
         -100
-      ]
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
@@ -115,7 +119,7 @@
           "temperature": 0.2
         }
       },
-      "id": "f0b76826-7f8d-4d0b-ae01-e797932c9615",
+      "id": "387dd44e-bff8-4be7-bc92-7c6cd5516270",
       "name": "Gemini Flash-Lite",
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
@@ -130,7 +134,7 @@
         "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
         "contextWindowLength": 8
       },
-      "id": "0a69216d-f60f-4edc-b7c1-90340b999f83",
+      "id": "3f83e234-b265-4736-8abf-aea821f0b26e",
       "name": "Chat Memory",
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
@@ -152,7 +156,7 @@
         },
         "returnAll": true
       },
-      "id": "97a603ca-f3bd-4278-bcbe-718a8c578ff6",
+      "id": "af276e25-3553-421c-ba2f-8bd081462b63",
       "name": "read_intel_log",
       "type": "n8n-nodes-base.dataTableTool",
       "typeVersion": 1.1,
@@ -174,7 +178,7 @@
         },
         "returnAll": true
       },
-      "id": "ec25c9ae-6eaa-4b4d-a3bf-9adbd811a5ff",
+      "id": "f4d2f5d0-7e1f-44e3-991d-a618d3ffa9e3",
       "name": "read_briefs",
       "type": "n8n-nodes-base.dataTableTool",
       "typeVersion": 1.1,
@@ -213,7 +217,7 @@
           "convertFieldsToString": false
         }
       },
-      "id": "8853f0fd-9dfe-46f5-a6c1-d1aaceca3d22",
+      "id": "ee6c70b5-d48d-4c7f-81f9-2fea732c7a33",
       "name": "compare_with_last_month",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.2,
@@ -230,7 +234,7 @@
           "appendAttribution": false
         }
       },
-      "id": "eace0e02-07cf-46c7-b6b0-669c1b7d7675",
+      "id": "58837012-e16e-48b3-a77b-338e0b7c1b46",
       "name": "Reply on Telegram",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,

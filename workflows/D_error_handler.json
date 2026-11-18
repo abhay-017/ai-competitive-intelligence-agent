@@ -8,8 +8,8 @@
         "height": 220,
         "color": 3
       },
-      "id": "9e1f6d13-c881-4404-9b04-d4b91fa0d8b0",
-      "name": "Note a4e7e1",
+      "id": "faf7b8a2-f0b0-44da-8ee2-6658d7efe637",
+      "name": "Note be2854",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -19,7 +19,7 @@
     },
     {
       "parameters": {},
-      "id": "ec006ccb-a7ee-4a05-9c56-b15cc3e9d12f",
+      "id": "37de0ade-73d8-4724-a4ca-cc8cab3abee7",
       "name": "Error Trigger",
       "type": "n8n-nodes-base.errorTrigger",
       "typeVersion": 1,
@@ -33,7 +33,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "d696717a-02e7-4342-a204-4fb012f5ceab",
+              "id": "5ba9de38-fc74-4fd1-9a75-983b85a55ff9",
               "name": "telegram_chat_id",
               "value": "PASTE_YOUR_TELEGRAM_CHAT_ID",
               "type": "string"
@@ -42,7 +42,7 @@
         },
         "options": {}
       },
-      "id": "9ccc31ed-a5d1-44f1-84f0-907e48a86f42",
+      "id": "b0ac7a50-a14b-4647-a143-b95ee5559a65",
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -63,7 +63,7 @@
           ]
         }
       },
-      "id": "ad0e35c5-8e29-4ebf-8cf0-9773bf857642",
+      "id": "fb0bc5d2-4719-4aef-b42e-ba4d4803be18",
       "name": "Diagnose Error (fallback model)",
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
@@ -80,7 +80,7 @@
           "temperature": 0.2
         }
       },
-      "id": "d751f157-f383-4a25-b0c3-bf96b77a0558",
+      "id": "7b87d1a9-b2e6-4a50-9995-2efe117cdc74",
       "name": "Gemini Flash-Lite (fallback)",
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
@@ -97,7 +97,7 @@
           "appendAttribution": false
         }
       },
-      "id": "bbae6532-63eb-431b-acc4-7471869a00c0",
+      "id": "4ec1c40a-91e7-473c-aa9a-0c45139d1d51",
       "name": "Telegram Error Alert",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
